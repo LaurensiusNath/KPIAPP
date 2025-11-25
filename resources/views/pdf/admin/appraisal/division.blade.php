@@ -14,119 +14,156 @@
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 11pt;
-            line-height: 1.5;
+            font-size: 10pt;
+            line-height: 1.4;
             color: #1f2937;
-            padding: 20px;
+            padding: 15px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 24px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #2563eb;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #2563eb;
+            border-radius: 6px;
         }
 
         .header h1 {
-            font-size: 18pt;
-            margin-bottom: 4px;
-            color: #1e40af;
+            font-size: 20pt;
+            margin-bottom: 6px;
+            color: #ffffff;
+            font-weight: bold;
         }
 
         .header p {
-            font-size: 10pt;
-            color: #6b7280;
+            font-size: 12pt;
+            color: #dbeafe;
+            font-weight: 600;
         }
 
         .meta {
-            margin-bottom: 20px;
-            padding: 12px;
-            background: #f3f4f6;
+            margin-bottom: 16px;
+            padding: 0;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
             border-radius: 4px;
+            overflow: hidden;
         }
 
         .meta-row {
             display: flex;
-            margin-bottom: 6px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .meta-row:last-child {
+            border-bottom: none;
+        }
+
+        .meta-row:nth-child(even) {
+            background: #f9fafb;
         }
 
         .meta-label {
             width: 140px;
             font-weight: bold;
             color: #374151;
+            font-size: 9pt;
         }
 
         .meta-value {
             color: #1f2937;
+            font-size: 9pt;
+            flex: 1;
         }
 
         .summary {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            gap: 12px;
         }
 
         .summary-card {
             flex: 1;
-            margin: 0 8px;
-            padding: 12px;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 4px;
+            padding: 14px;
+            background: #dbeafe;
+            border: 2px solid #93c5fd;
+            border-radius: 6px;
             text-align: center;
         }
 
-        .summary-card:first-child {
-            margin-left: 0;
-        }
-
-        .summary-card:last-child {
-            margin-right: 0;
-        }
-
         .summary-label {
-            font-size: 9pt;
-            color: #6b7280;
-            margin-bottom: 4px;
+            font-size: 8pt;
+            color: #1e40af;
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .summary-value {
-            font-size: 16pt;
+            font-size: 22pt;
             font-weight: bold;
             color: #1e40af;
         }
 
         h2 {
-            font-size: 13pt;
-            margin-top: 24px;
-            margin-bottom: 12px;
+            font-size: 12pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
             color: #1e40af;
-            border-bottom: 1px solid #d1d5db;
-            padding-bottom: 4px;
+            border-left: 4px solid #2563eb;
+            padding-left: 10px;
+            font-weight: bold;
+            background: #eff6ff;
+            padding: 8px 10px;
+            border-radius: 3px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #d1d5db;
         }
 
         table thead {
-            background: #f9fafb;
+            background: #2563eb;
         }
 
         table th {
-            padding: 8px;
-            text-align: left;
+            padding: 10px 8px;
+            text-align: center;
             font-weight: bold;
-            border-bottom: 2px solid #d1d5db;
-            font-size: 10pt;
+            color: #ffffff;
+            font-size: 8pt;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        table th:last-child {
+            border-right: none;
         }
 
         table td {
             padding: 8px;
             border-bottom: 1px solid #e5e7eb;
-            font-size: 10pt;
+            font-size: 9pt;
+            border-right: 1px solid #f3f4f6;
+        }
+
+        table td:last-child {
+            border-right: none;
+        }
+
+        table tbody tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        table tbody tr:hover {
+            background: #eff6ff;
         }
 
         table tbody tr:last-child td {
@@ -142,12 +179,49 @@
         }
 
         .footer {
-            margin-top: 32px;
-            padding-top: 12px;
-            border-top: 1px solid #d1d5db;
+            margin-top: 24px;
+            padding-top: 10px;
+            border-top: 2px solid #d1d5db;
             text-align: center;
-            font-size: 9pt;
+            font-size: 8pt;
             color: #6b7280;
+        }
+
+        .progress-bar {
+            background: #eff6ff;
+            height: 22px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #bfdbfe;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: #2563eb;
+            height: 100%;
+            float: left;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 7pt;
+            font-weight: 600;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #86efac;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
         }
     </style>
 </head>
@@ -160,8 +234,25 @@
 
     <div class="meta">
         <div class="meta-row">
+            <span class="meta-label">Team Leader</span>
+            <span class="meta-value">{{ $division->leader?->name ?? '—' }}</span>
+        </div>
+        <div class="meta-row">
             <span class="meta-label">Periode</span>
             <span class="meta-value">Semester {{ $period->semester }} - {{ $period->year }}</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Bulan</span>
+            <span class="meta-value">
+                @php
+                    $months = $period->semester === 1 ? range(1, 6) : range(7, 12);
+                    $monthNames = array_map(
+                        fn($m) => \Carbon\Carbon::create($period->year, $m, 1)->translatedFormat('F'),
+                        $months,
+                    );
+                @endphp
+                {{ implode(', ', $monthNames) }}
+            </span>
         </div>
         <div class="meta-row">
             <span class="meta-label">Tanggal Cetak</span>
@@ -186,12 +277,12 @@
         $chartMonths = $period->semester === 1 ? range(1, 6) : range(7, 12);
         $monthLookup = collect($trendSeries)->keyBy('month');
     @endphp
-    <table style="border: 1px solid #e5e7eb;">
+    <table>
         <thead>
             <tr>
-                <th style="width: 100px;">Bulan</th>
-                <th style="width: 80px; text-align: center;">Nilai</th>
-                <th>Visualisasi</th>
+                <th style="width: 100px; text-align: left;">Bulan</th>
+                <th style="width: 60px;">Nilai</th>
+                <th style="text-align: left;">Visualisasi</th>
             </tr>
         </thead>
         <tbody>
@@ -203,17 +294,21 @@
                     $percentage = $value !== null ? ($value / 5) * 100 : 0;
                 @endphp
                 <tr>
-                    <td>{{ $label }}</td>
-                    <td style="text-align: center;">{{ $value !== null ? number_format($value, 2) : '—' }}</td>
-                    <td>
+                    <td style="vertical-align: middle; font-weight: 600; padding: 10px 8px;">{{ $label }}</td>
+                    <td class="text-center" style="vertical-align: middle; padding: 10px 8px;">
                         @if ($value !== null)
-                            <div style="background: #eff6ff; height: 20px; border-radius: 3px; overflow: hidden;">
-                                <div
-                                    style="background: #2563eb; height: 100%; width: {{ $percentage }}%; float: left;">
-                                </div>
+                            <strong style="font-size: 11pt; color: #1e40af;">{{ number_format($value, 2) }}</strong>
+                        @else
+                            <span style="color: #9ca3af;">—</span>
+                        @endif
+                    </td>
+                    <td style="vertical-align: middle; padding: 10px 8px;">
+                        @if ($value !== null)
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ $percentage }}%;"></div>
                             </div>
                         @else
-                            <span style="color: #9ca3af; font-size: 9pt;">Belum ada data</span>
+                            <span style="color: #9ca3af; font-size: 8pt; font-style: italic;">Belum ada data</span>
                         @endif
                     </td>
                 </tr>
@@ -225,27 +320,38 @@
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>Nama Staff</th>
-                <th>Email</th>
-                <th class="text-center">Rata-rata KPI</th>
-                <th class="text-center">Status Appraisal</th>
+                <th style="width: 35px;">No</th>
+                <th style="width: 160px; text-align: left;">Nama Staff</th>
+                <th style="width: 160px; text-align: left;">Email</th>
+                <th style="width: 70px;">Rata-rata</th>
+                <th style="width: 90px;">Status</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($staffList as $index => $staff)
                 <tr>
-                    <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $staff['name'] }}</td>
-                    <td>{{ $staff['email'] }}</td>
-                    <td class="text-center">
-                        {{ $staff['average_score'] !== null ? number_format($staff['average_score'], 2) : 'Belum dinilai' }}
+                    <td class="text-center" style="vertical-align: middle; padding: 10px 8px;">{{ $index + 1 }}</td>
+                    <td style="vertical-align: middle; font-weight: 600; padding: 10px 8px;">{{ $staff['name'] }}</td>
+                    <td style="vertical-align: middle; font-size: 8pt; color: #6b7280; padding: 10px 8px;">
+                        {{ $staff['email'] }}</td>
+                    <td class="text-center" style="vertical-align: middle; padding: 10px 8px;">
+                        @if ($staff['average_score'] !== null)
+                            <strong
+                                style="font-size: 12pt; color: #1e40af;">{{ number_format($staff['average_score'], 2) }}</strong>
+                        @else
+                            <span style="color: #9ca3af; font-size: 8pt; font-style: italic;">Belum dinilai</span>
+                        @endif
                     </td>
-                    <td class="text-center">{{ $staff['appraisal_status'] }}</td>
+                    <td class="text-center" style="vertical-align: middle; padding: 10px 8px;">
+                        <span
+                            class="badge {{ $staff['appraisal_status'] === 'Finalized' ? 'badge-success' : 'badge-warning' }}">
+                            {{ $staff['appraisal_status'] }}
+                        </span>
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center text-muted">Belum ada data staff</td>
+                    <td colspan="5" class="text-center text-muted" style="padding: 20px;">Belum ada data staff</td>
                 </tr>
             @endforelse
         </tbody>

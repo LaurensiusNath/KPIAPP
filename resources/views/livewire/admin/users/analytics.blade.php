@@ -1,4 +1,4 @@
-<section class="bg-gray-50 dark:bg-gray-900 p-6 min-h-screen">
+<section class=" dark:bg-gray-900 min-h-screen">
     <div class="max-w-5xl mx-auto space-y-6">
         @if (session('info'))
             <div class="p-4 text-sm text-blue-800 bg-blue-50 rounded-lg dark:bg-gray-800 dark:text-blue-300">
@@ -118,14 +118,14 @@
                     <p class="text-sm text-gray-500 dark:text-gray-400">Periode semester {{ $period->semester }}</p>
                 </div>
             </div>
-            <div class="relative" style="height: 300px;">
+            <div class="relative" style="height: 400px;">
                 <canvas id="userTrendChart"></canvas>
             </div>
         </div>
     </div>
 
     @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
         <script>
             window.addEventListener('load', () => {
                 let userChart;
@@ -157,19 +157,65 @@
                             datasets: [{
                                 label: 'Rata-rata KPI',
                                 data: values,
-                                borderColor: '#16a34a',
-                                backgroundColor: 'rgba(22,163,74,0.2)',
-                                tension: 0.35,
-                                spanGaps: true
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3,
+                                fill: false,
+                                spanGaps: false
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        padding: 15,
+                                        font: {
+                                            size: 12
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += context.parsed.y.toFixed(2);
+                                            } else {
+                                                label += 'Belum ada data';
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            },
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    suggestedMax: 5
+                                    max: 5,
+                                    ticks: {
+                                        stepSize: 1
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Nilai KPI'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Bulan'
+                                    }
                                 }
                             }
                         }

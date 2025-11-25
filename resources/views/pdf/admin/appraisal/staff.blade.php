@@ -14,82 +14,149 @@
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 11pt;
-            line-height: 1.5;
+            font-size: 10pt;
+            line-height: 1.4;
             color: #1f2937;
-            padding: 20px;
+            padding: 15px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 24px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #16a34a;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #16a34a;
+            border-radius: 6px;
         }
 
         .header h1 {
-            font-size: 18pt;
-            margin-bottom: 4px;
-            color: #15803d;
+            font-size: 20pt;
+            margin-bottom: 6px;
+            color: #ffffff;
+            font-weight: bold;
         }
 
         .header p {
-            font-size: 10pt;
-            color: #6b7280;
+            font-size: 12pt;
+            color: #e0f2e9;
+            font-weight: 600;
         }
 
         .meta {
-            margin-bottom: 20px;
-            padding: 12px;
-            background: #f3f4f6;
+            margin-bottom: 16px;
+            padding: 0;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
             border-radius: 4px;
+            overflow: hidden;
         }
 
         .meta-row {
             display: flex;
-            margin-bottom: 6px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .meta-row:last-child {
+            border-bottom: none;
+        }
+
+        .meta-row:nth-child(even) {
+            background: #f9fafb;
         }
 
         .meta-label {
             width: 140px;
             font-weight: bold;
             color: #374151;
+            font-size: 9pt;
         }
 
         .meta-value {
             color: #1f2937;
+            font-size: 9pt;
+            flex: 1;
+        }
+
+        .summary-box {
+            margin-bottom: 16px;
+            padding: 16px;
+            background: #dcfce7;
+            border: 2px solid #86efac;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 9pt;
+            color: #166534;
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-value {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #15803d;
         }
 
         h2 {
-            font-size: 13pt;
-            margin-top: 24px;
-            margin-bottom: 12px;
+            font-size: 12pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
             color: #15803d;
-            border-bottom: 1px solid #d1d5db;
-            padding-bottom: 4px;
+            border-left: 4px solid #16a34a;
+            padding-left: 10px;
+            font-weight: bold;
+            background: #f0fdf4;
+            padding: 8px 10px;
+            border-radius: 3px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 9pt;
+            margin-bottom: 16px;
+            font-size: 8pt;
+            border: 1px solid #d1d5db;
         }
 
         table thead {
-            background: #f9fafb;
+            background: #16a34a;
         }
 
         table th {
-            padding: 6px;
-            text-align: left;
+            padding: 10px 6px;
+            text-align: center;
             font-weight: bold;
-            border-bottom: 2px solid #d1d5db;
+            color: #ffffff;
+            font-size: 8pt;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        table th:last-child {
+            border-right: none;
         }
 
         table td {
-            padding: 6px;
+            padding: 8px 6px;
             border-bottom: 1px solid #e5e7eb;
+            border-right: 1px solid #f3f4f6;
+        }
+
+        table td:last-child {
+            border-right: none;
+        }
+
+        table tbody tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        table tbody tr:hover {
+            background: #f0fdf4;
         }
 
         table tbody tr:last-child td {
@@ -105,12 +172,44 @@
         }
 
         .footer {
-            margin-top: 32px;
-            padding-top: 12px;
-            border-top: 1px solid #d1d5db;
+            margin-top: 24px;
+            padding-top: 10px;
+            border-top: 2px solid #d1d5db;
             text-align: center;
-            font-size: 9pt;
+            font-size: 8pt;
             color: #6b7280;
+        }
+
+        .kpi-title {
+            font-weight: bold;
+            color: #1f2937;
+            font-size: 8pt;
+            line-height: 1.3;
+        }
+
+        .kpi-weight {
+            font-size: 7pt;
+            color: #16a34a;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .score-value {
+            font-weight: bold;
+            font-size: 11pt;
+            color: #15803d;
+        }
+
+        .criteria-label {
+            font-size: 6pt;
+            color: #6b7280;
+            margin-top: 2px;
+            font-style: italic;
+        }
+
+        .avg-column {
+            background: #dcfce7 !important;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -131,6 +230,10 @@
             <span class="meta-value">{{ $user->division?->name ?? '—' }}</span>
         </div>
         <div class="meta-row">
+            <span class="meta-label">Role</span>
+            <span class="meta-value">{{ ucfirst($user->role) }}</span>
+        </div>
+        <div class="meta-row">
             <span class="meta-label">Periode</span>
             <span class="meta-value">Semester {{ $period->semester }} - {{ $period->year }}</span>
         </div>
@@ -140,38 +243,70 @@
         </div>
     </div>
 
+    @php
+        $totalAverage = collect($detail['kpis'])->filter(fn($kpi) => $kpi['average'] !== null)->avg('average');
+    @endphp
+    @if ($totalAverage)
+        <div class="summary-box">
+            <div class="summary-label">Rata-rata KPI Keseluruhan</div>
+            <div class="summary-value">{{ number_format($totalAverage, 2) }}</div>
+        </div>
+    @endif
+
     <h2>Detail KPI per Bulan</h2>
     <table>
         <thead>
             <tr>
-                <th style="width: 120px;">KPI</th>
+                <th style="width: 140px; text-align: left;">KPI</th>
                 @foreach ($detail['months'] as $month)
-                    <th class="text-center" style="width: 60px;">
+                    <th style="width: 50px;">
                         {{ \Carbon\Carbon::create($period->year, $month, 1)->translatedFormat('M') }}
                     </th>
                 @endforeach
-                <th class="text-center" style="width: 60px;">Avg</th>
+                <th style="width: 50px;">AVG</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($detail['kpis'] as $kpi)
                 <tr>
-                    <td>
-                        {{ $kpi['title'] }}<br>
-                        <span style="font-size: 8pt; color: #6b7280;">({{ $kpi['weight'] }}%)</span>
+                    <td style="vertical-align: top; padding: 10px 8px;">
+                        <div class="kpi-title">{{ $kpi['title'] }}</div>
+                        <div class="kpi-weight">Bobot: {{ $kpi['weight'] }}%</div>
                     </td>
                     @foreach ($detail['months'] as $month)
-                        <td class="text-center">
-                            {{ $kpi['monthly_scores'][$month]['score'] ?? '—' }}
+                        @php
+                            $score = $kpi['monthly_scores'][$month]['score'] ?? null;
+                            $criteriaScale = $kpi['criteria_scale'] ?? [];
+                            $criteria = null;
+                            if ($score !== null && is_array($criteriaScale)) {
+                                $scoreInt = (int) $score;
+                                $criteria = $criteriaScale[$scoreInt] ?? null;
+                            }
+                        @endphp
+                        <td class="text-center" style="vertical-align: middle; padding: 10px 4px;">
+                            @if ($score !== null)
+                                <div class="score-value">{{ $score }}</div>
+                                @if ($criteria)
+                                    <div class="criteria-label">{{ $criteria }}</div>
+                                @endif
+                            @else
+                                <span style="color: #9ca3af;">—</span>
+                            @endif
                         </td>
                     @endforeach
-                    <td class="text-center" style="font-weight: bold;">
-                        {{ $kpi['average'] !== null ? number_format($kpi['average'], 2) : '—' }}
+                    <td class="text-center avg-column" style="vertical-align: middle; padding: 10px 6px;">
+                        @if ($kpi['average'] !== null)
+                            <span
+                                style="font-size: 11pt; color: #15803d; font-weight: bold;">{{ number_format($kpi['average'], 2) }}</span>
+                        @else
+                            <span style="color: #9ca3af;">—</span>
+                        @endif
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ count($detail['months']) + 2 }}" class="text-center text-muted">Belum ada data KPI
+                    <td colspan="{{ count($detail['months']) + 2 }}" class="text-center text-muted"
+                        style="padding: 20px;">Belum ada data KPI
                     </td>
                 </tr>
             @endforelse

@@ -20,7 +20,7 @@
                         </div>
                         <div class="flex gap-3">
                             <a href="{{ route('admin.appraisal.form', ['user' => $user->id, 'period' => $period->id]) }}"
-                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white capitalize tracking-wide hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
@@ -29,13 +29,13 @@
                                 Isi Appraisal
                             </a>
                             <button wire:click="downloadReport"
-                                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-sm text-white capitalize tracking-wide hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                     </path>
                                 </svg>
-                                Download Laporan PDF
+                                Download Laporan
                             </button>
                         </div>
                     </div>
@@ -96,14 +96,20 @@
                                             <td class="px-3 py-4 text-center">
                                                 @php
                                                     $score = $kpi['monthly_scores'][$month]['score'] ?? null;
-                                                    $note = $kpi['monthly_scores'][$month]['note'] ?? null;
+                                                    $criteriaScale = $kpi['criteria_scale'] ?? [];
+                                                    $criteria = null;
+
+                                                    if ($score !== null && is_array($criteriaScale)) {
+                                                        $scoreInt = (int) $score;
+                                                        $criteria = $criteriaScale[$scoreInt] ?? null;
+                                                    }
                                                 @endphp
                                                 @if ($score !== null)
                                                     <span
                                                         class="text-sm font-semibold text-gray-900">{{ $score }}</span>
-                                                    @if ($note)
-                                                        <div class="text-xs text-gray-500 mt-1"
-                                                            title="{{ $note }}">{{ Str::limit($note, 20) }}
+                                                    @if ($criteria)
+                                                        <div class="text-xs text-gray-500 mt-1">
+                                                            {{ $criteria }}
                                                         </div>
                                                     @endif
                                                 @else

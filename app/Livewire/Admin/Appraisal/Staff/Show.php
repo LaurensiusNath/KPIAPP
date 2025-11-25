@@ -32,17 +32,24 @@ class Show extends Component
             return;
         }
 
+        // Refresh user data with division relation
+        $user = User::with('division')->find($this->user->id);
+
         $data = [
-            'user' => $this->user,
+            'user' => $user,
             'period' => $this->period,
             'detail' => $this->detail,
             'generatedAt' => now()->translatedFormat('d F Y H:i'),
         ];
 
         $pdf = Pdf::loadView('pdf.admin.appraisal.staff', $data);
+
+        // Clear any view cache
+        $pdf->setPaper('a4', 'landscape');
+
         $filename = sprintf(
             'Appraisal-Staff-%s-S%d-%d.pdf',
-            $this->user->name,
+            $user->name,
             $this->period->semester,
             $this->period->year
         );

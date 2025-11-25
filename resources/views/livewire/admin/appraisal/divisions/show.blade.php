@@ -19,14 +19,14 @@
                             <p class="text-sm text-gray-600 mt-1">Semester {{ $period->semester }} - {{ $period->year }}
                             </p>
                         </div>
-                        <button wire:click="downloadReport"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button type="button" wire:click="downloadReport"
+                            class="flex items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                            <svg class="h-3.5 w-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                 </path>
                             </svg>
-                            Download Laporan PDF
+                            Download Laporan
                         </button>
                     </div>
                 </div>
@@ -141,18 +141,42 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <a href="{{ route('admin.appraisal.staff.show', ['user' => $staff['id'], 'period' => $period->id]) }}"
-                                                    class="text-blue-600 hover:text-blue-900">Lihat Detail</a>
-                                                <span class="text-gray-300">|</span>
-                                                <a href="{{ route('admin.appraisal.form', ['user' => $staff['id'], 'period' => $period->id]) }}"
-                                                    class="text-green-600 hover:text-green-900">Isi Appraisal</a>
+                                            <div class="relative inline-block text-left">
+                                                <button wire:click="toggleDropdown({{ $staff['id'] }})"
+                                                    class="inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+                                                    type="button">
+                                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
+                                                        viewBox="0 0 16 3" xmlns="http://www.w3.org/2000/svg">
+                                                        <path
+                                                            d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" />
+                                                    </svg>
+                                                </button>
+                                                @if ($openDropdownId === $staff['id'])
+                                                    <div
+                                                        class="absolute right-0 mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+                                                        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+                                                            <li>
+                                                                <a href="{{ route('admin.appraisal.staff.show', ['user' => $staff['id'], 'period' => $period->id]) }}"
+                                                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                                                                    Lihat Detail
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{{ route('admin.appraisal.form', ['user' => $staff['id'], 'period' => $period->id]) }}"
+                                                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                                                                    Isi Appraisal
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">Belum ada
+                                        <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">Belum
+                                            ada
                                             data staff</td>
                                     </tr>
                                 @endforelse

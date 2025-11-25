@@ -1,4 +1,4 @@
-<section class="bg-gray-50 dark:bg-gray-900 p-6 min-h-screen">
+<section class=" dark:bg-gray-900 min-h-screen">
     <div class="max-w-7xl mx-auto space-y-6">
         @if (session('info'))
             <div class="p-4 text-sm text-blue-800 bg-blue-50 rounded-lg dark:bg-gray-800 dark:text-blue-300">

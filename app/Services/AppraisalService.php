@@ -207,6 +207,7 @@ class AppraisalService
                 'id' => $kpi->id,
                 'title' => $kpi->title,
                 'weight' => $kpi->weight,
+                'criteria_scale' => $kpi->criteria_scale,
                 'monthly_scores' => $monthlyScores,
                 'average' => $average,
             ];

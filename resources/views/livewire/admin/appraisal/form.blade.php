@@ -1,4 +1,4 @@
-<section class="bg-gray-50 dark:bg-gray-900 p-6 min-h-screen">
+<section class=" dark:bg-gray-900 min-h-screen">
     <div class="max-w-6xl mx-auto space-y-6">
         <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow flex items-center justify-between">
             <div>

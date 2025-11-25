@@ -1,4 +1,4 @@
-<section class="bg-gray-50 dark:bg-gray-900 p-6 min-h-screen">
+<section class=" dark:bg-gray-900  min-h-screen">
     <div class="max-w-7xl mx-auto space-y-8">
 
         <!-- Division Header -->

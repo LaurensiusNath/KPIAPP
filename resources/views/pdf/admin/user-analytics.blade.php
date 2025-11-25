@@ -46,11 +46,12 @@
         }
 
         .meta-row {
-            display: flex;
             margin-bottom: 6px;
+            overflow: hidden;
         }
 
         .meta-label {
+            float: left;
             width: 140px;
             font-weight: bold;
             color: #374151;
@@ -58,46 +59,36 @@
 
         .meta-value {
             color: #1f2937;
+            margin-left: 140px;
         }
 
         .summary {
-            display: flex;
-            justify-content: space-between;
+            width: 100%;
             margin-bottom: 20px;
-            align-items: stretch;
+            border-collapse: collapse;
         }
 
-        .summary-card {
-            flex: 1;
-            margin: 0 8px;
+        .summary td {
+            width: 50%;
             padding: 12px;
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
-            border-radius: 4px;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .summary-card:first-child {
-            margin-left: 0;
-        }
-
-        .summary-card:last-child {
-            margin-right: 0;
+            vertical-align: middle;
         }
 
         .summary-label {
             font-size: 9pt;
             color: #6b7280;
             margin-bottom: 4px;
+            display: block;
         }
 
         .summary-value {
             font-size: 16pt;
             font-weight: bold;
             color: #15803d;
+            display: block;
         }
 
         h2 {
@@ -109,32 +100,30 @@
             padding-bottom: 4px;
         }
 
-        table {
+        table.data-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
 
-        table thead {
+        table.data-table thead {
             background: #f9fafb;
         }
 
-        table th {
+        table.data-table th {
             padding: 8px;
             text-align: left;
             font-weight: bold;
-            border-bottom: 2px solid #d1d5db;
+            border: 1px solid #d1d5db;
             font-size: 10pt;
+            vertical-align: middle;
         }
 
-        table td {
+        table.data-table td {
             padding: 8px;
-            border-bottom: 1px solid #e5e7eb;
+            border: 1px solid #e5e7eb;
             font-size: 10pt;
-        }
-
-        table tbody tr:last-child td {
-            border-bottom: none;
+            vertical-align: top;
         }
 
         .text-center {
@@ -185,26 +174,29 @@
         </div>
     </div>
 
-    <div class="summary">
-        <div class="summary-card">
-            <div class="summary-label">Rata-rata KPI Bulan Ini</div>
-            <div class="summary-value">{{ $monthlyAverage !== null ? number_format($monthlyAverage, 2) : '—' }}</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">Jumlah KPI</div>
-            <div class="summary-value">{{ count($kpiRows) }}</div>
-        </div>
-    </div>
+    <table class="summary">
+        <tr>
+            <td>
+                <span class="summary-label">Rata-rata KPI Bulan Ini</span>
+                <span
+                    class="summary-value">{{ $monthlyAverage !== null ? number_format($monthlyAverage, 2) : '—' }}</span>
+            </td>
+            <td>
+                <span class="summary-label">Jumlah KPI</span>
+                <span class="summary-value">{{ count($kpiRows) }}</span>
+            </td>
+        </tr>
+    </table>
 
     <h2>Detail KPI</h2>
-    <table>
+    <table class="data-table">
         <thead>
             <tr>
-                <th>No</th>
-                <th>Nama KPI</th>
-                <th class="text-center">Bobot</th>
-                <th class="text-center">Skor</th>
-                <th>Catatan</th>
+                <th style="width: 5%;" class="text-center">No</th>
+                <th style="width: 30%;">Nama KPI</th>
+                <th style="width: 10%;" class="text-center">Bobot</th>
+                <th style="width: 15%;" class="text-center">Skor</th>
+                <th style="width: 40%;">Catatan</th>
             </tr>
         </thead>
         <tbody>

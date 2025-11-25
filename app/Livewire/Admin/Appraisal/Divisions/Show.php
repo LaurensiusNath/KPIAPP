@@ -18,6 +18,7 @@ class Show extends Component
     public array $summary = [];
     public array $trendSeries = [];
     public array $staffList = [];
+    public ?int $openDropdownId = null;
 
     public function mount(Division $division, Period $period, AppraisalService $appraisalService): void
     {
@@ -44,8 +45,11 @@ class Show extends Component
             return;
         }
 
+        // Refresh division data with leader relation
+        $division = Division::with('leader')->find($this->division->id);
+
         $data = [
-            'division' => $this->division,
+            'division' => $division,
             'period' => $this->period,
             'summary' => $this->summary,
             'trendSeries' => $this->trendSeries,
@@ -54,14 +58,23 @@ class Show extends Component
         ];
 
         $pdf = Pdf::loadView('pdf.admin.appraisal.division', $data);
+
+        // Set landscape for better table display
+        $pdf->setPaper('a4', 'landscape');
+
         $filename = sprintf(
             'Appraisal-Divisi-%s-S%d-%d.pdf',
-            $this->division->name,
+            $division->name,
             $this->period->semester,
             $this->period->year
         );
 
         return response()->streamDownload(fn() => print($pdf->output()), $filename);
+    }
+
+    public function toggleDropdown(?int $staffId): void
+    {
+        $this->openDropdownId = $this->openDropdownId === $staffId ? null : $staffId;
     }
 
     public function render()
