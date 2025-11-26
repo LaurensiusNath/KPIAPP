@@ -17,7 +17,13 @@
 </head>
 
 <body class="font-sans antialiased">
-    @livewire('admin.sidebar')
+    @if (Auth::user()->role === 'admin')
+        @livewire('admin.sidebar')
+    @elseif (Auth::user()->role === 'team-leader')
+        @livewire('team-leader.sidebar')
+    @else
+        @livewire('user.sidebar')
+    @endif
     <main class="p-4 md:ml-64 h-auto pt-20">
         {{ $slot }}
     </main>

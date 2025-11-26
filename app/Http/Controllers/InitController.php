@@ -17,7 +17,7 @@ class InitController extends Controller
                     return redirect()->to('/team-leader/dashboard');
                     break;
                 default:
-                    return redirect()->route('dashboard');
+                    return redirect()->route('user.dashboard');
             }
         } else {
             return redirect()->route('login');

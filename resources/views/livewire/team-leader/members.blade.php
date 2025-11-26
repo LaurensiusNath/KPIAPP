@@ -1,13 +1,12 @@
 <section class="dark:bg-gray-900 min-h-screen">
-    <div class="max-w-6xl mx-auto space-y-6">
+    <div class="max-w-5xl mx-auto space-y-6">
         <header class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                        Penilaian KPI Bulanan
+                        Anggota Divisi
                     </h1>
-                    <p class="text-gray-500 dark:text-gray-400">Status penilaian bulanan dan appraisal untuk bulan
-                        {{ now()->format('F') }}</p>
+                    <p class="text-gray-500 dark:text-gray-400">Kelola item KPI untuk anggota tim</p>
                 </div>
                 <div class="w-full md:w-80">
                     <label for="search" class="sr-only">Search</label>
@@ -33,8 +32,7 @@
                     <tr>
                         <th class="px-4 py-3">Nama</th>
                         <th class="px-4 py-3">Email</th>
-                        <th class="px-4 py-3">Status Penilaian Bulanan</th>
-                        <th class="px-4 py-3">Status Appraisal</th>
+                        <th class="px-4 py-3">Status KPI Items</th>
                         <th class="px-4 py-3"><span class="sr-only">Aksi</span></th>
                     </tr>
                 </thead>
@@ -44,32 +42,14 @@
                             <td class="px-4 py-3">{{ $m['name'] }}</td>
                             <td class="px-4 py-3">{{ $m['email'] }}</td>
                             <td class="px-4 py-3">
-                                @if ($m['monthly_status'] === 'Sudah Dinilai')
+                                @if ($m['has_set_kpi'])
                                     <span
                                         class="text-xs px-2.5 py-0.5 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Sudah
-                                        Dinilai</span>
+                                        Set</span>
                                 @else
                                     <span
                                         class="text-xs px-2.5 py-0.5 rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Belum
-                                        Dinilai</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3">
-                                @if ($m['appraisal_status'] === 'Finalized')
-                                    <span
-                                        class="text-xs px-2.5 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Finalized</span>
-                                @elseif($m['appraisal_status'] === 'Pending HRD')
-                                    <span
-                                        class="text-xs px-2.5 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Pending
-                                        HRD</span>
-                                @elseif($m['appraisal_status'] === 'Pending TL')
-                                    <span
-                                        class="text-xs px-2.5 py-0.5 rounded bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">Pending
-                                        TL</span>
-                                @else
-                                    <span
-                                        class="text-xs px-2.5 py-0.5 rounded bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">Belum
-                                        Ada</span>
+                                        Set</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 flex items-center justify-end">
@@ -84,18 +64,17 @@
                                     </svg>
                                 </button>
                                 <div id="member-{{ $m['id'] }}-dropdown"
-                                    class="hidden z-10 w-56 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
+                                    class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
                                     <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
                                         aria-labelledby="member-{{ $m['id'] }}-button">
                                         <li>
-                                            <a href="{{ route('tl.kpi.monthly', ['user' => $m['id']]) }}"
-                                                class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Isi
-                                                Penilaian Bulanan</a>
+                                            <a href="{{ route('tl.kpi.items', ['user' => $m['id']]) }}"
+                                                class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Kelola
+                                                KPI</a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('tl.appraisal.form', ['user' => $m['id']]) }}"
-                                                class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Isi
-                                                Penilaian Appraisal</a>
+                                            <a href="{{ route('tl.user.analytics', ['user' => $m['id']]) }}"
+                                                class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Analitik</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -103,7 +82,7 @@
                         </tr>
                     @empty
                         <tr class="border-t dark:border-gray-700">
-                            <td colspan="5" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                            <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                                 @if ($search)
                                     Tidak ada staff yang cocok dengan "{{ $search }}".
                                 @else

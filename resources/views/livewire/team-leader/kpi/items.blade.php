@@ -1,4 +1,4 @@
-<section class="bg-gray-50 dark:bg-gray-900 p-6 min-h-screen">
+<section class="dark:bg-gray-900 min-h-screen">
     <div class="max-w-5xl mx-auto space-y-6">
         <header class="space-y-1">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">KPI Items</h1>

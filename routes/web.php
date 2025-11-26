@@ -22,6 +22,7 @@ use App\Livewire\TeamLeader\Kpi\PlanForm as TlKpiPlanForm;
 use App\Livewire\TeamLeader\Kpi\Monthly as TlKpiMonthly;
 use App\Livewire\TeamLeader\Kpi\History as TlKpiHistory;
 use App\Livewire\TeamLeader\Division\Analytics as TlDivisionAnalytics;
+use App\Livewire\TeamLeader\Members as TlMembers;
 use App\Livewire\TeamLeader\Users\Analytics as TlUserAnalytics;
 
 use App\Livewire\Admin\Periods as AdminPeriods;
@@ -56,10 +57,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 Route::middleware(['auth', 'verified', 'role:team-leader'])
     ->prefix('team-leader')
     ->group(function () {
-        // Dedicated route for listing team members (employee list with Manage KPI action)
-        Route::get('/members', TlKpiMembers::class)->name('tl.members');
-        Route::get('/division/analytics', TlDivisionAnalytics::class)->name('tl.division.analytics');
-        // Monthly evaluation list of members
+        // Dashboard - Division Analytics
+        Route::get('/dashboard', TlDivisionAnalytics::class)->name('tl.dashboard');
+        // Employee list with KPI setup status (Manage KPI action)
+        Route::get('/members', TlMembers::class)->name('tl.members');
+        // Monthly evaluation and appraisal list
         Route::get('/kpi/members', TlKpiMembers::class)->name('tl.kpi.members');
         Route::get('/kpi/{user}/items', TlKpiItems::class)->name('tl.kpi.items');
         // Form to set KPI plan for a user -> direct from tl.members
@@ -75,7 +77,7 @@ Route::middleware(['auth', 'verified', 'role:team-leader'])
 Route::middleware(['auth', 'verified', 'role:user'])
     ->prefix('user')
     ->group(function () {
-        Route::get('/dashboard', UserSelfAnalytics::class)->name('user.analytics');
+        Route::get('/dashboard', UserSelfAnalytics::class)->name('user.dashboard');
     });
 
 // Route::get('/dashboard', function () {

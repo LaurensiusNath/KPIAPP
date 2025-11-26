@@ -116,7 +116,94 @@ class KpiService
     }
 
     /**
-     * Replace all KPI items for a user in a period in one submit.
+     * Update existing KPI items for a user in a period WITHOUT deleting anything.
+     * Use this when KPIs already exist and you just want to update them.
+     * $items: array of ['id'=>int|null, 'title'=>string, 'weight'=>float, 'criteria_scale'=>array]
+     * - If 'id' is provided: update that specific KPI
+     * - If 'id' is null/missing: create new KPI
+     */
+    public function updateKpiBulk(User $targetUser, Period $period, array $items, User $actor)
+    {
+        $this->assertTeamLeaderForMember($actor, $targetUser->id);
+
+        if (!$this->periodService->isCurrentWindowForKpiCreation($period)) {
+            throw new PeriodClosedException('Periode tidak dalam jendela pembuatan KPI.');
+        }
+
+        if (empty($items)) {
+            throw new DomainValidationException('Daftar KPI tidak boleh kosong.');
+        }
+
+        // Validate items and compute total
+        $total = 0.0;
+        $prepared = [];
+        foreach ($items as $idx => $it) {
+            $id = isset($it['id']) && $it['id'] ? (int)$it['id'] : null;
+            $title = trim((string)($it['title'] ?? ''));
+            $weight = (float)($it['weight'] ?? 0);
+            $scale = $it['criteria_scale'] ?? null;
+
+            if ($title === '' || $weight <= 0) {
+                throw new DomainValidationException("Item #" . ($idx + 1) . " tidak valid (judul/weight).");
+            }
+
+            if (!is_array($scale)) {
+                $scaleJson = (string)($it['criteria_scale_json'] ?? '');
+                $scale = $this->decodeCriteriaScale($scaleJson);
+            }
+
+            $total += $weight;
+            $prepared[] = [
+                'id' => $id,
+                'title' => $title,
+                'weight' => $weight,
+                'criteria_scale' => $scale,
+            ];
+        }
+
+        if (abs($total - 100.0) > 0.00001) {
+            throw new DomainValidationException('Total bobot harus tepat 100% untuk submit. Total saat ini: ' . number_format($total, 2) . '%.');
+        }
+
+        // Update/Create strategy in a transaction - NO DELETES
+        return $this->db->transaction(function () use ($targetUser, $period, $prepared) {
+            foreach ($prepared as $row) {
+                if ($row['id']) {
+                    // Update existing KPI by ID
+                    $kpi = Kpi::query()
+                        ->where('id', $row['id'])
+                        ->where('user_id', $targetUser->id)
+                        ->where('period_id', $period->id)
+                        ->firstOrFail();
+
+                    $kpi->update([
+                        'title' => $row['title'],
+                        'weight' => (float)$row['weight'],
+                        'criteria_scale' => $row['criteria_scale'],
+                    ]);
+                } else {
+                    // Create new KPI
+                    Kpi::create([
+                        'user_id' => $targetUser->id,
+                        'period_id' => $period->id,
+                        'title' => $row['title'],
+                        'weight' => (float)$row['weight'],
+                        'criteria_scale' => $row['criteria_scale'],
+                    ]);
+                }
+            }
+
+            return Kpi::query()
+                ->where('user_id', $targetUser->id)
+                ->where('period_id', $period->id)
+                ->orderBy('created_at')
+                ->get();
+        });
+    }
+
+    /**
+     * Create all KPI items for a user in a period (Initial setup).
+     * Use this for FIRST TIME setup. Will delete all existing KPIs.
      * $items: array of ['title'=>string, 'weight'=>float, 'criteria_scale'=>array]
      */
     public function createKpiBulk(User $targetUser, Period $period, array $items, User $actor)
@@ -161,8 +248,22 @@ class KpiService
             throw new DomainValidationException('Total bobot harus tepat 100% untuk submit massal. Total saat ini: ' . number_format($total, 2) . '%.');
         }
 
-        // Replace set in a transaction
+        // Check if any existing KPIs have values
+        $existingKpisWithValues = Kpi::query()
+            ->where('user_id', $targetUser->id)
+            ->where('period_id', $period->id)
+            ->whereHas('kpiValues')
+            ->exists();
+
+        if ($existingKpisWithValues) {
+            throw new DomainValidationException(
+                'Tidak dapat mengganti KPI karena sudah ada penilaian. Gunakan mode update untuk mengubah KPI yang ada.'
+            );
+        }
+
+        // Replace all KPIs in a transaction
         return $this->db->transaction(function () use ($targetUser, $period, $prepared) {
+            // Safe to delete because we checked no kpi_values exist
             Kpi::query()->where('user_id', $targetUser->id)->where('period_id', $period->id)->delete();
 
             foreach ($prepared as $row) {
@@ -190,6 +291,16 @@ class KpiService
         $period = $kpi->period()->firstOrFail();
         if (!$this->periodService->isCurrentWindowForKpiCreation($period)) {
             throw new PeriodClosedException('Periode tidak dalam jendela penghapusan KPI.');
+        }
+
+        // Check if this KPI has any values
+        $hasValues = DB::table('kpi_values')->where('kpi_id', $kpi->id)->exists();
+
+        if ($hasValues) {
+            throw new DomainValidationException(
+                "Tidak dapat menghapus KPI '{$kpi->title}' karena sudah memiliki penilaian. " .
+                    "Silakan hapus penilaian terlebih dahulu."
+            );
         }
 
         return (bool) $this->db->transaction(function () use ($kpi) {

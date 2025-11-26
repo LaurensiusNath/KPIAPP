@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <title>{{ $title ?? config('app.name', 'KPI Portal') }}</title>
+    <title>{{ $title ?? 'Page Title' }}</title>
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
@@ -15,6 +15,8 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    @stack('scripts')
 </body>
 
 </html>

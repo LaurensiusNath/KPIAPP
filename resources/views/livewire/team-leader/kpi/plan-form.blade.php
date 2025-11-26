@@ -1,4 +1,4 @@
-<section class="bg-gray-50 dark:bg-gray-900 p-6 min-h-screen">
+<section class=" dark:bg-gray-900  min-h-screen">
     <div class="max-w-4xl mx-auto space-y-6">
         <header class="space-y-1">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Rencanakan KPI (Bulk)</h1>
@@ -39,6 +39,8 @@
                         @foreach ($items as $i => $row)
                             <tr class="border-t dark:border-gray-700" wire:key="plan-row-{{ $i }}">
                                 <td class="px-3 py-2 align-middle">
+                                    {{-- Hidden ID field to track existing KPIs --}}
+                                    <input type="hidden" wire:model="items.{{ $i }}.id" />
                                     <input type="text" wire:model.lazy="items.{{ $i }}.title"
                                         class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-600 focus:border-primary-600 p-2.5" />
                                 </td>

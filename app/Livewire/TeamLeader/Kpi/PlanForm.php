@@ -52,6 +52,7 @@ class PlanForm extends Component
                     $normScale[$lvl] = (string)($rawScale[$lvl] ?? ($rawScale[(string)$lvl] ?? ''));
                 }
                 return [
+                    'id' => $kpi->id, // Include ID for update
                     'title' => (string) $kpi->title,
                     // ensure number input shows formatted value
                     'weight' => (string) number_format((float) $kpi->weight, 2, '.', ''),
@@ -67,6 +68,7 @@ class PlanForm extends Component
     public function addRow(): void
     {
         $this->items[] = [
+            'id' => null, // No ID for new items
             'title' => '',
             'weight' => '',
             'scale' => [
@@ -105,7 +107,10 @@ class PlanForm extends Component
     {
         // Basic validation
         $clean = [];
+        $hasExistingKpis = false;
+
         foreach ($this->items as $i => $row) {
+            $id = isset($row['id']) && $row['id'] ? (int)$row['id'] : null;
             $title = trim((string)($row['title'] ?? ''));
             $weight = (float)($row['weight'] ?? 0);
             $scale = $row['scale'] ?? [];
@@ -115,7 +120,13 @@ class PlanForm extends Component
                 return;
             }
             if (!is_array($scale)) $scale = [];
+
+            if ($id) {
+                $hasExistingKpis = true;
+            }
+
             $clean[] = [
+                'id' => $id,
                 'title' => $title,
                 'weight' => $weight,
                 'criteria_scale' => $scale,
@@ -128,7 +139,13 @@ class PlanForm extends Component
         }
 
         try {
-            $service->createKpiBulk($this->user, $this->activePeriod, $clean, Auth::user());
+            // Use updateKpiBulk if there are existing KPIs, createKpiBulk for initial setup
+            if ($hasExistingKpis) {
+                $service->updateKpiBulk($this->user, $this->activePeriod, $clean, Auth::user());
+            } else {
+                $service->createKpiBulk($this->user, $this->activePeriod, $clean, Auth::user());
+            }
+
             session()->flash('success', 'KPI berhasil disimpan.');
             redirect()->route('tl.kpi.items', ['user' => $this->user->id]);
         } catch (UnauthorizedException | PeriodClosedException | DomainValidationException $e) {

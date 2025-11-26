@@ -1,4 +1,4 @@
-<section class="bg-gray-50 dark:bg-gray-900 p-6 min-h-screen">
+<section class=" dark:bg-gray-900  min-h-screen">
     <div class="max-w-5xl mx-auto space-y-6">
         @if (session('info'))
             <div class="p-4 text-sm text-blue-800 bg-blue-50 rounded-lg dark:bg-gray-800 dark:text-blue-300">
@@ -25,7 +25,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">Bulan {{ $selectedMonthLabel }}</p>
             </div>
             <div class="flex flex-col md:flex-row gap-3">
-                <select wire:model="month"
+                <select wire:model.live="month"
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full md:w-auto px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     @foreach ($monthOptions as $option)
                         <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
@@ -68,6 +68,7 @@
                             <th class="px-4 py-3">Nama KPI</th>
                             <th class="px-4 py-3">Bobot (%)</th>
                             <th class="px-4 py-3">Nilai</th>
+                            <th class="px-4 py-3">Catatan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,15 +78,25 @@
                                     {{ $row['title'] ?? '' }}
                                 </td>
                                 <td class="px-4 py-2">
-                                    {{ isset($row['weight']) ? number_format($row['weight'], 2) : '—' }}
-                                </td>
+                                    {{ isset($row['weight']) ? number_format($row['weight'], 2) : '—' }}</td>
                                 <td class="px-4 py-2 font-semibold">
-                                    {{ $row['score'] !== null ? number_format($row['score'], 2) : 'Belum dinilai' }}
+                                    @if ($row['score'] !== null)
+                                        {{ number_format($row['score'], 2) }}
+                                        @if ($row['criteria_label'])
+                                            <span
+                                                class="text-xs text-gray-500 dark:text-gray-400">({{ $row['criteria_label'] }})</span>
+                                        @endif
+                                    @else
+                                        Belum dinilai
+                                    @endif
+                                </td>
+                                <td class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $row['note'] ?? '—' }}
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Belum
+                                <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Belum
                                     ada data penilaian.</td>
                             </tr>
                         @endforelse
@@ -101,20 +112,21 @@
                     <p class="text-sm text-gray-500 dark:text-gray-400">Periode semester {{ $period->semester }}</p>
                 </div>
             </div>
-            <div class="relative">
-                <canvas id="userTrendChart" height="120"></canvas>
+            <div class="relative" style="height: 400px;">
+                <canvas id="userTrendChart"></canvas>
             </div>
         </div>
     </div>
 
-    @script
+    @push('scripts')
         <script>
-            document.addEventListener('livewire:init', () => {
+            window.addEventListener('load', () => {
                 let userChart;
 
                 const renderUserChart = (series = []) => {
                     const canvas = document.getElementById('userTrendChart');
                     if (!canvas || typeof Chart === 'undefined') {
+                        console.warn('Chart.js belum ter-load atau canvas tidak ditemukan');
                         return;
                     }
 
@@ -132,17 +144,65 @@
                             datasets: [{
                                 label: 'Rata-rata KPI',
                                 data: values,
-                                borderColor: '#2563eb',
-                                backgroundColor: 'rgba(37,99,235,0.15)',
-                                tension: 0.35,
-                                spanGaps: true,
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3,
+                                fill: false,
+                                spanGaps: false
                             }]
                         },
                         options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        padding: 15,
+                                        font: {
+                                            size: 12
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += context.parsed.y.toFixed(2);
+                                            } else {
+                                                label += 'Belum ada data';
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            },
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    suggestedMax: 5
+                                    max: 5,
+                                    ticks: {
+                                        stepSize: 1
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Nilai KPI'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Bulan'
+                                    }
                                 }
                             }
                         }
@@ -153,7 +213,9 @@
                     const series = payload?.data ?? payload;
                     renderUserChart(series);
                 });
+
+                renderUserChart(@js($trendSeries));
             });
         </script>
-    @endscript
+    @endpush
 </section>

@@ -38,4 +38,9 @@ class Kpi extends Model
     {
         return $this->hasMany(KpiValue::class, 'kpi_id', 'id');
     }
+
+    public function kpiValues(): HasMany
+    {
+        return $this->hasMany(KpiValue::class, 'kpi_id', 'id');
+    }
 }

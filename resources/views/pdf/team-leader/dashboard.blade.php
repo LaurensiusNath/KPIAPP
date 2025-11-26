@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Analitik User</title>
+    <title>Laporan Analitik Divisi</title>
     <style>
         * {
             margin: 0;
@@ -24,13 +24,13 @@
             text-align: center;
             margin-bottom: 24px;
             padding-bottom: 12px;
-            border-bottom: 2px solid #16a34a;
+            border-bottom: 2px solid #2563eb;
         }
 
         .header h1 {
             font-size: 18pt;
             margin-bottom: 4px;
-            color: #15803d;
+            color: #1e40af;
         }
 
         .header p {
@@ -69,10 +69,10 @@
         }
 
         .summary td {
-            width: 50%;
+            width: 33.33%;
             padding: 12px;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
             text-align: center;
             vertical-align: middle;
         }
@@ -87,7 +87,7 @@
         .summary-value {
             font-size: 16pt;
             font-weight: bold;
-            color: #15803d;
+            color: #1e40af;
             display: block;
         }
 
@@ -95,7 +95,7 @@
             font-size: 13pt;
             margin-top: 24px;
             margin-bottom: 12px;
-            color: #15803d;
+            color: #1e40af;
             border-bottom: 1px solid #d1d5db;
             padding-bottom: 4px;
         }
@@ -147,25 +147,17 @@
 
 <body>
     <div class="header">
-        <h1>Laporan Analitik KPI</h1>
-        <p>{{ $user->name }}</p>
+        <h1>Laporan Dashboard Team Leader</h1>
+        <p>{{ $division->name }}</p>
     </div>
 
     <div class="meta">
-        <div class="meta-row">
-            <span class="meta-label">Email</span>
-            <span class="meta-value">{{ $user->email }}</span>
-        </div>
-        <div class="meta-row">
-            <span class="meta-label">Divisi</span>
-            <span class="meta-value">{{ $user->division?->name ?? '—' }}</span>
-        </div>
         <div class="meta-row">
             <span class="meta-label">Periode</span>
             <span class="meta-value">Semester {{ $period->semester }} - {{ $period->year }}</span>
         </div>
         <div class="meta-row">
-            <span class="meta-label">Bulan</span>
+            <span class="meta-label">Bulan Laporan</span>
             <span class="meta-value">{{ $monthLabel }}</span>
         </div>
         <div class="meta-row">
@@ -177,49 +169,90 @@
     <table class="summary">
         <tr>
             <td>
-                <span class="summary-label">Rata-rata KPI Bulan Ini</span>
-                <span
-                    class="summary-value">{{ $monthlyAverage !== null ? number_format($monthlyAverage, 2) : '—' }}</span>
+                <span class="summary-label">Total Staff</span>
+                <span class="summary-value">{{ $evaluationStatus['total_staff'] ?? 0 }}</span>
             </td>
             <td>
-                <span class="summary-label">Jumlah KPI</span>
-                <span class="summary-value">{{ count($kpiRows) }}</span>
+                <span class="summary-label">Dinilai {{ $monthLabel }}</span>
+                <span class="summary-value">{{ $evaluationStatus['evaluated_staff'] ?? 0 }}</span>
+            </td>
+            <td>
+                <span class="summary-label">Rata-rata Divisi</span>
+                <span
+                    class="summary-value">{{ $divisionStats['division_average'] !== null ? number_format($divisionStats['division_average'], 2) : '—' }}</span>
             </td>
         </tr>
     </table>
 
-    <h2>Detail KPI</h2>
+    <h2>Status Appraisal</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;" class="text-center">Pending Team Leader</th>
+                <th style="width: 25%;" class="text-center">Pending HRD</th>
+                <th style="width: 25%;" class="text-center">Finalized</th>
+                <th style="width: 25%;" class="text-center">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-center">{{ $appraisalStatus['pending_teamleader'] ?? 0 }}</td>
+                <td class="text-center">{{ $appraisalStatus['pending_hrd'] ?? 0 }}</td>
+                <td class="text-center">{{ $appraisalStatus['finalized'] ?? 0 }}</td>
+                <td class="text-center">{{ $appraisalStatus['total'] ?? 0 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    @if (!empty($topPerformers))
+        <h2>Top Performer {{ $monthLabel }}</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%;" class="text-center">Rank</th>
+                    <th style="width: 35%;">Nama</th>
+                    <th style="width: 40%;">Email</th>
+                    <th style="width: 15%;" class="text-center">Nilai</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($topPerformers as $index => $performer)
+                    <tr>
+                        <td class="text-center">
+                            <span style="font-weight: bold; color: #1e40af;">{{ $index + 1 }}</span>
+                        </td>
+                        <td>{{ $performer['name'] }}</td>
+                        <td>{{ $performer['email'] }}</td>
+                        <td class="text-center">{{ number_format($performer['score'], 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
+    <h2>Summary Anggota Tim</h2>
     <table class="data-table">
         <thead>
             <tr>
                 <th style="width: 5%;" class="text-center">No</th>
-                <th style="width: 30%;">Nama KPI</th>
-                <th style="width: 10%;" class="text-center">Bobot</th>
-                <th style="width: 15%;" class="text-center">Skor</th>
-                <th style="width: 40%;">Catatan</th>
+                <th style="width: 35%;">Nama</th>
+                <th style="width: 40%;">Email</th>
+                <th style="width: 20%;" class="text-center">Nilai {{ $monthLabel }}</th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($kpiRows as $index => $kpi)
+            @forelse ($staffSummary as $index => $staff)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $kpi['title'] }}</td>
-                    <td class="text-center">{{ $kpi['weight'] }}%</td>
+                    <td>{{ $staff['name'] }}</td>
+                    <td>{{ $staff['email'] }}</td>
                     <td class="text-center">
-                        @if ($kpi['score'] !== null)
-                            {{ number_format($kpi['score'], 2) }}
-                            @if ($kpi['criteria_label'])
-                                <br><span style="font-size: 9pt; color: #6b7280;">({{ $kpi['criteria_label'] }})</span>
-                            @endif
-                        @else
-                            Belum dinilai
-                        @endif
+                        {{ $staff['monthly_average'] !== null ? number_format($staff['monthly_average'], 2) : 'Belum dinilai' }}
                     </td>
-                    <td style="font-size: 9pt;">{{ $kpi['note'] ?? '—' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center text-muted">Belum ada data KPI</td>
+                    <td colspan="4" class="text-center text-muted">Belum ada data anggota</td>
                 </tr>
             @endforelse
         </tbody>

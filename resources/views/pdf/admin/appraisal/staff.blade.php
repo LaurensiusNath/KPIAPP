@@ -211,6 +211,40 @@
             background: #dcfce7 !important;
             font-weight: bold;
         }
+
+        .comment-section {
+            margin-bottom: 16px;
+            padding: 14px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 4px;
+            border-left: 4px solid #16a34a;
+        }
+
+        .comment-title {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #15803d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .comment-content {
+            font-size: 9pt;
+            color: #374151;
+            line-height: 1.6;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 3px;
+            border: 1px solid #d1fae5;
+        }
+
+        .comment-empty {
+            font-size: 9pt;
+            color: #9ca3af;
+            font-style: italic;
+        }
     </style>
 </head>
 
@@ -314,6 +348,26 @@
     </table>
 
     @if ($detail['appraisal'])
+        <h2>Komentar</h2>
+
+        <div class="comment-section">
+            <div class="comment-title">Team Leader</div>
+            @if ($detail['appraisal']->comment_teamleader)
+                <div class="comment-content">{{ $detail['appraisal']->comment_teamleader }}</div>
+            @else
+                <div class="comment-empty">Belum ada komentar dari Team Leader</div>
+            @endif
+        </div>
+
+        <div class="comment-section">
+            <div class="comment-title">HRD</div>
+            @if ($detail['appraisal']->comment_hrd)
+                <div class="comment-content">{{ $detail['appraisal']->comment_hrd }}</div>
+            @else
+                <div class="comment-empty">Belum ada komentar dari HRD</div>
+            @endif
+        </div>
+
         <h2>Status Appraisal</h2>
         <div class="meta">
             <div class="meta-row">
@@ -330,18 +384,6 @@
                 <span class="meta-label">Status</span>
                 <span class="meta-value">{{ $detail['appraisal']->is_finalized ? 'Finalized' : 'In Progress' }}</span>
             </div>
-            @if ($detail['appraisal']->comment_teamleader)
-                <div class="meta-row">
-                    <span class="meta-label">Komentar TL</span>
-                    <span class="meta-value">{{ $detail['appraisal']->comment_teamleader }}</span>
-                </div>
-            @endif
-            @if ($detail['appraisal']->comment_hrd)
-                <div class="meta-row">
-                    <span class="meta-label">Komentar HRD</span>
-                    <span class="meta-value">{{ $detail['appraisal']->comment_hrd }}</span>
-                </div>
-            @endif
         </div>
     @endif
 

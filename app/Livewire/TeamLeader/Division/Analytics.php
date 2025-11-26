@@ -4,8 +4,8 @@ namespace App\Livewire\TeamLeader\Division;
 
 use App\Models\Division;
 use App\Models\Period;
-use App\Services\DivisionAnalyticsService;
 use App\Services\PeriodService;
+use App\Services\TeamLeaderDashboardService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -19,16 +19,31 @@ class Analytics extends Component
     public ?Period $period = null;
     public ?int $month = null;
     public array $monthOptions = [];
-    public ?float $divisionAverage = null;
-    public array $userScores = [];
-    public array $trendSeries = [];
     public string $selectedMonthLabel = '';
+
+    // Monthly Performance Chart Data
+    public array $monthlyPerformance = [];
+
+    // Evaluation Status
+    public array $evaluationStatus = [];
+
+    // Appraisal Status
+    public array $appraisalStatus = [];
+
+    // Top Performers
+    public array $topPerformers = [];
+
+    // Staff Summary
+    public array $staffSummary = [];
+
+    // Division Stats
+    public array $divisionStats = [];
 
     protected $queryString = [
         'month' => ['except' => null],
     ];
 
-    public function mount(PeriodService $periodService, DivisionAnalyticsService $analyticsService): void
+    public function mount(PeriodService $periodService, TeamLeaderDashboardService $dashboardService): void
     {
         $leader = Auth::user()?->loadMissing('leading');
         $this->division = $leader?->leading;
@@ -41,12 +56,12 @@ class Analytics extends Component
         }
 
         if (!$this->period) {
-            session()->flash('error', 'Belum ada periode aktif untuk analitik divisi.');
+            session()->flash('error', 'Belum ada periode aktif untuk dashboard.');
             $this->redirectRoute('tl.members');
             return;
         }
 
-        $months = $analyticsService->getMonthsForPeriod($this->period);
+        $months = $dashboardService->getMonthsForPeriod($this->period);
         $this->monthOptions = collect($months)->map(function (int $value) {
             return [
                 'value' => $value,
@@ -59,7 +74,7 @@ class Analytics extends Component
             ? $requestedMonth
             : $this->resolveDefaultMonth($months);
 
-        $this->loadAnalytics($analyticsService);
+        $this->loadDashboardData($dashboardService);
     }
 
     protected function resolveDefaultMonth(array $months): int
@@ -74,27 +89,30 @@ class Analytics extends Component
 
     public function updatedMonth(): void
     {
-        $analyticsService = app(DivisionAnalyticsService::class);
+        $dashboardService = app(TeamLeaderDashboardService::class);
         $validMonths = array_column($this->monthOptions, 'value');
         if (!in_array((int) $this->month, $validMonths, true)) {
             $this->month = $validMonths[0] ?? now()->month;
         }
 
-        $this->loadAnalytics($analyticsService);
+        $this->loadDashboardData($dashboardService);
     }
 
-    protected function loadAnalytics(DivisionAnalyticsService $analyticsService): void
+    protected function loadDashboardData(TeamLeaderDashboardService $dashboardService): void
     {
         if (!$this->period || !$this->division || !$this->month) {
             return;
         }
 
-        $this->divisionAverage = $analyticsService->getDivisionMonthlyAverage($this->division, $this->period, $this->month);
-        $this->userScores = $analyticsService->getDivisionUserMonthlyScores($this->division, $this->period, $this->month)->toArray();
-        $this->trendSeries = $analyticsService->getDivisionTrendSeries($this->division, $this->period);
+        $this->monthlyPerformance = $dashboardService->getMonthlyTeamPerformance($this->division, $this->period);
+        $this->evaluationStatus = $dashboardService->getMonthlyEvaluationStatus($this->division, $this->period, $this->month);
+        $this->appraisalStatus = $dashboardService->getAppraisalStatus($this->division, $this->period);
+        $this->topPerformers = $dashboardService->getTopPerformers($this->division, $this->period, $this->month);
+        $this->staffSummary = $dashboardService->getStaffSummary($this->division, $this->period, $this->month);
+        $this->divisionStats = $dashboardService->getDivisionStats($this->division, $this->period, $this->month);
         $this->selectedMonthLabel = Carbon::create($this->period->year, $this->month, 1)->translatedFormat('F');
 
-        $this->dispatch('division-chart-updated', data: $this->trendSeries);
+        $this->dispatch('team-chart-updated', data: $this->monthlyPerformance);
     }
 
     public function downloadReport()
@@ -104,19 +122,19 @@ class Analytics extends Component
             return;
         }
 
-        $analyticsService = app(DivisionAnalyticsService::class);
         $data = [
             'division' => $this->division,
             'period' => $this->period,
-            'month' => $this->month,
+            'evaluationStatus' => $this->evaluationStatus,
+            'appraisalStatus' => $this->appraisalStatus,
+            'topPerformers' => $this->topPerformers,
+            'staffSummary' => $this->staffSummary,
+            'divisionStats' => $this->divisionStats,
             'monthLabel' => Carbon::create($this->period->year, $this->month, 1)->translatedFormat('F Y'),
-            'divisionAverage' => $this->divisionAverage,
-            'userScores' => $this->userScores,
-            'trendSeries' => $this->trendSeries,
         ];
 
-        $pdf = Pdf::loadView('pdf.team-leader.division-analytics', $data);
-        $filename = sprintf('Laporan-Divisi-%s-%s.pdf', $this->division->name, $data['monthLabel']);
+        $pdf = Pdf::loadView('pdf.team-leader.dashboard', $data);
+        $filename = sprintf('Dashboard-Divisi-%s-%s.pdf', $this->division->name, $data['monthLabel']);
 
         return response()->streamDownload(fn() => print($pdf->output()), $filename);
     }
@@ -127,6 +145,6 @@ class Analytics extends Component
             return redirect()->route('tl.members');
         }
 
-        return view('livewire.admin.divisions.analytics');
+        return view('livewire.team-leader.division.analytics');
     }
 }
