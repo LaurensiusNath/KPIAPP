@@ -39,7 +39,7 @@ class Divisions extends Component
             });
         }
 
-        return $query->paginate(25)->withQueryString();
+        return $query->paginate(20)->withQueryString();
     }
 
 

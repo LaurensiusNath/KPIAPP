@@ -59,7 +59,7 @@ class Users extends Component
             $usersQuery->where('division_id', $this->divisionFilter);
         }
 
-        return $usersQuery->paginate(25)->withQueryString();
+        return $usersQuery->paginate(20)->withQueryString();
     }
 
     public function getDivisionsProperty(DivisionService $divisionService)

@@ -65,7 +65,7 @@ class Periods extends Component
             ->orderByDesc('is_active')
             ->orderBy('year', 'desc')
             ->orderBy('semester', 'desc')
-            ->paginate(25)
+            ->paginate(20)
             ->withQueryString();
     }
 

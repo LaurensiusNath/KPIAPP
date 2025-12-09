@@ -13,6 +13,7 @@ use App\Services\Exceptions\UnauthorizedException;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class KpiService
 {
@@ -122,7 +123,7 @@ class KpiService
      * - If 'id' is provided: update that specific KPI
      * - If 'id' is null/missing: create new KPI
      */
-    public function updateKpiBulk(User $targetUser, Period $period, array $items, User $actor)
+    public function updateKpiBulk(User $targetUser, Period $period, array $items, User $actor, array $explicitRemovedIds = [])
     {
         $this->assertTeamLeaderForMember($actor, $targetUser->id);
 
@@ -165,8 +166,47 @@ class KpiService
             throw new DomainValidationException('Total bobot harus tepat 100% untuk submit. Total saat ini: ' . number_format($total, 2) . '%.');
         }
 
-        // Update/Create strategy in a transaction - NO DELETES
-        return $this->db->transaction(function () use ($targetUser, $period, $prepared) {
+        $existingIds = Kpi::query()
+            ->where('user_id', $targetUser->id)
+            ->where('period_id', $period->id)
+            ->pluck('id')
+            ->all();
+
+        $incomingIds = collect($prepared)
+            ->pluck('id')
+            ->filter()
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        $idsToDelete = array_diff($existingIds, $incomingIds);
+        if (!empty($explicitRemovedIds)) {
+            $idsToDelete = array_unique(array_merge($idsToDelete, array_map('intval', $explicitRemovedIds)));
+        }
+
+        // Debug logging
+        Log::info('KPI Update Debug', [
+            'existing_ids' => $existingIds,
+            'incoming_ids' => $incomingIds,
+            'explicit_removed' => $explicitRemovedIds,
+            'final_ids_to_delete' => $idsToDelete,
+        ]);
+
+        // Update/Create strategy in a transaction - includes clean-up for removed KPIs
+        return $this->db->transaction(function () use ($targetUser, $period, $prepared, $idsToDelete) {
+            if (!empty($idsToDelete)) {
+                Log::info('Deleting KPIs', ['ids' => $idsToDelete]);
+                $hasValues = DB::table('kpi_values')->whereIn('kpi_id', $idsToDelete)->exists();
+                if ($hasValues) {
+                    throw new DomainValidationException('Tidak dapat menghapus KPI tertentu karena sudah memiliki penilaian. Hapus penilaian terlebih dahulu.');
+                }
+
+                Kpi::query()
+                    ->where('user_id', $targetUser->id)
+                    ->where('period_id', $period->id)
+                    ->whereIn('id', $idsToDelete)
+                    ->delete();
+            }
+
             foreach ($prepared as $row) {
                 if ($row['id']) {
                     // Update existing KPI by ID

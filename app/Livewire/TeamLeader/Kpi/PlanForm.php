@@ -10,6 +10,7 @@ use App\Services\Exceptions\UnauthorizedException;
 use App\Services\KpiService;
 use App\Services\PeriodService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -18,8 +19,9 @@ class PlanForm extends Component
 {
     public User $user;
     public ?Period $activePeriod = null;
+    public bool $hadExistingKpis = false;
 
-    /** @var array<int, array{title:string, weight:string|float|null, scale:array<int,string>}> */
+    /** @var array<int, array{id:int|null, title:string, weight:string|float|null, scale:array<int,string>, deleted:bool}> */
     public array $items = [];
 
     public float $totalWeight = 0.0;
@@ -45,6 +47,7 @@ class PlanForm extends Component
         // Prefill with existing KPIs if any, otherwise start with one blank row
         $existing = $kpiService->getKpisByUserAndPeriod($user, $this->activePeriod);
         if ($existing->count() > 0) {
+            $this->hadExistingKpis = true;
             $this->items = $existing->map(function ($kpi) {
                 $rawScale = is_array($kpi->criteria_scale) ? $kpi->criteria_scale : [];
                 $normScale = [];
@@ -57,6 +60,7 @@ class PlanForm extends Component
                     // ensure number input shows formatted value
                     'weight' => (string) number_format((float) $kpi->weight, 2, '.', ''),
                     'scale' => $normScale,
+                    'deleted' => false,
                 ];
             })->values()->all();
         } else {
@@ -78,13 +82,16 @@ class PlanForm extends Component
                 4 => 'Good',
                 5 => 'Excellent',
             ],
+            'deleted' => false,
         ];
     }
 
     public function removeRow(int $index): void
     {
         if (!isset($this->items[$index])) return;
-        array_splice($this->items, $index, 1);
+
+        // Mark as deleted instead of removing from array
+        $this->items[$index]['deleted'] = true;
         $this->recomputeTotal();
     }
 
@@ -97,6 +104,9 @@ class PlanForm extends Component
     {
         $sum = 0.0;
         foreach ($this->items as $row) {
+            // Skip deleted items
+            if (!empty($row['deleted'])) continue;
+
             $w = (float)($row['weight'] ?? 0);
             $sum += $w;
         }
@@ -105,11 +115,19 @@ class PlanForm extends Component
 
     public function submit(KpiService $service): void
     {
-        // Basic validation
+        // Separate active items and deleted IDs
         $clean = [];
-        $hasExistingKpis = false;
+        $removedIds = [];
 
         foreach ($this->items as $i => $row) {
+            // Collect IDs of deleted items
+            if (!empty($row['deleted'])) {
+                if (!empty($row['id'])) {
+                    $removedIds[] = (int)$row['id'];
+                }
+                continue; // Skip deleted items
+            }
+
             $id = isset($row['id']) && $row['id'] ? (int)$row['id'] : null;
             $title = trim((string)($row['title'] ?? ''));
             $weight = (float)($row['weight'] ?? 0);
@@ -120,10 +138,6 @@ class PlanForm extends Component
                 return;
             }
             if (!is_array($scale)) $scale = [];
-
-            if ($id) {
-                $hasExistingKpis = true;
-            }
 
             $clean[] = [
                 'id' => $id,
@@ -138,10 +152,18 @@ class PlanForm extends Component
             return;
         }
 
+        // Debug logging
+        Log::info('PlanForm Submit Debug', [
+            'user_id' => $this->user->id,
+            'active_items' => $clean,
+            'removed_ids' => $removedIds,
+            'had_existing' => $this->hadExistingKpis,
+        ]);
+
         try {
             // Use updateKpiBulk if there are existing KPIs, createKpiBulk for initial setup
-            if ($hasExistingKpis) {
-                $service->updateKpiBulk($this->user, $this->activePeriod, $clean, Auth::user());
+            if ($this->hadExistingKpis) {
+                $service->updateKpiBulk($this->user, $this->activePeriod, $clean, Auth::user(), $removedIds);
             } else {
                 $service->createKpiBulk($this->user, $this->activePeriod, $clean, Auth::user());
             }

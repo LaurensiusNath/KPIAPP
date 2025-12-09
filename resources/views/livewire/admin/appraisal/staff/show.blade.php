@@ -67,6 +67,18 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Detail KPI per Bulan</h3>
+                    @if (isset($detail['overall_weighted_average']))
+                        <div class="mb-4">
+                            <div class="bg-indigo-50 border border-indigo-100 rounded p-4">
+                                <p class="text-sm font-medium text-indigo-700">Rata-rata KPI Tertimbang Keseluruhan</p>
+                                <p class="text-2xl font-bold text-indigo-800 mt-1">
+                                    {{ $detail['overall_weighted_average'] !== null ? number_format($detail['overall_weighted_average'], 2) : '—' }}
+                                </p>
+                                <p class="text-xs text-indigo-700 mt-1">Dihitung berdasarkan bobot masing-masing KPI.
+                                </p>
+                            </div>
+                        </div>
+                    @endif
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">

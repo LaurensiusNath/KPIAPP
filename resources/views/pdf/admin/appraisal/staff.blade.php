@@ -277,13 +277,10 @@
         </div>
     </div>
 
-    @php
-        $totalAverage = collect($detail['kpis'])->filter(fn($kpi) => $kpi['average'] !== null)->avg('average');
-    @endphp
-    @if ($totalAverage)
+    @if (isset($detail['overall_weighted_average']) && $detail['overall_weighted_average'] !== null)
         <div class="summary-box">
-            <div class="summary-label">Rata-rata KPI Keseluruhan</div>
-            <div class="summary-value">{{ number_format($totalAverage, 2) }}</div>
+            <div class="summary-label">Rata-rata KPI Tertimbang Keseluruhan</div>
+            <div class="summary-value">{{ number_format($detail['overall_weighted_average'], 2) }}</div>
         </div>
     @endif
 

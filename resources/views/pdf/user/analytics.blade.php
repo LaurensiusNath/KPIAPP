@@ -147,7 +147,7 @@
 
 <body>
     <div class="header">
-        <h1>Laporan Analitik KPI Saya</h1>
+        <h1>Laporan Analitik KPI</h1>
         <p>{{ $user->name }}</p>
     </div>
 

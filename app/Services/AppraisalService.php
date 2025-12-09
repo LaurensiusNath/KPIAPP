@@ -213,6 +213,33 @@ class AppraisalService
             ];
         })->toArray();
 
+        // Compute overall averages across KPIs
+        $totalWeight = 0.0;
+        $weightedAccumulator = 0.0;
+        $plainAccumulator = 0.0;
+        $countWithAvg = 0;
+
+        foreach ($kpiDetails as $kpi) {
+            $avg = $kpi['average'];
+            if ($avg !== null) {
+                $countWithAvg++;
+                $plainAccumulator += (float)$avg;
+                $w = (float)($kpi['weight'] ?? 0);
+                $totalWeight += $w;
+                $weightedAccumulator += ($avg * $w);
+            }
+        }
+
+        $overallAverage = $countWithAvg > 0 ? round($plainAccumulator / $countWithAvg, 2) : null;
+        $overallWeightedAverage = null;
+        if ($countWithAvg > 0) {
+            if ($totalWeight > 0) {
+                $overallWeightedAverage = round($weightedAccumulator / $totalWeight, 2);
+            } else {
+                $overallWeightedAverage = round($plainAccumulator / $countWithAvg, 2);
+            }
+        }
+
         // Get appraisal record
         $appraisal = Appraisal::query()
             ->where('user_id', $user->id)
@@ -224,6 +251,8 @@ class AppraisalService
             'period' => $period,
             'months' => $months,
             'kpis' => $kpiDetails,
+            'overall_average' => $overallAverage,
+            'overall_weighted_average' => $overallWeightedAverage,
             'appraisal' => $appraisal,
         ];
     }

@@ -37,16 +37,23 @@
                     </thead>
                     <tbody>
                         @foreach ($items as $i => $row)
-                            <tr class="border-t dark:border-gray-700" wire:key="plan-row-{{ $i }}">
+                            @php
+                                $rowKey = $row['id'] ?? 'new-' . $i;
+                                $isDeleted = !empty($row['deleted']);
+                            @endphp
+                            <tr class="border-t dark:border-gray-700 {{ $isDeleted ? 'opacity-50 bg-red-50 dark:bg-red-900/20' : '' }}"
+                                wire:key="plan-row-{{ $rowKey }}">
                                 <td class="px-3 py-2 align-middle">
                                     {{-- Hidden ID field to track existing KPIs --}}
-                                    <input type="hidden" wire:model="items.{{ $i }}.id" />
+                                    <input type="hidden" wire:model="items.{{ $i }}.id"
+                                        value="{{ $row['id'] ?? '' }}" />
                                     <input type="text" wire:model.lazy="items.{{ $i }}.title"
+                                        @disabled($isDeleted)
                                         class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-600 focus:border-primary-600 p-2.5" />
                                 </td>
                                 <td class="px-3 py-2 align-middle">
                                     <input type="number" step="0.01" min="0"
-                                        wire:model.lazy="items.{{ $i }}.weight"
+                                        wire:model.lazy="items.{{ $i }}.weight" @disabled($isDeleted)
                                         class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-600 focus:border-primary-600 p-2.5" />
                                 </td>
                                 <td class="px-3 py-2 align-middle">
@@ -56,6 +63,7 @@
                                                 <label class="block text-xs mb-1">Level {{ $level }}</label>
                                                 <input type="text"
                                                     wire:model.lazy="items.{{ $i }}.scale.{{ $level }}"
+                                                    @disabled($isDeleted)
                                                     class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-600 focus:border-primary-600 p-2" />
                                             </div>
                                         @endfor
@@ -64,7 +72,10 @@
                                 <td class="px-3 py-2 align-middle">
                                     <div class="flex items-center justify-end h-full">
                                         <button type="button" wire:click="removeRow({{ $i }})"
-                                            class="px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white">Hapus</button>
+                                            @disabled($isDeleted)
+                                            class="px-3 py-1 text-xs rounded {{ $isDeleted ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700' }} text-white">
+                                            {{ $isDeleted ? 'Dihapus' : 'Hapus' }}
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -81,7 +92,7 @@
                         class="px-4 py-2 rounded border dark:border-gray-700 dark:text-gray-100">Batal</a>
                     <button type="button" wire:click="submit"
                         class="px-4 py-2 rounded bg-primary-700 text-white hover:bg-primary-800"
-                        @disabled($totalWeight > 100)">
+                        @disabled($totalWeight > 100)>
                         Simpan Semua (Harus 100%)
                     </button>
                 </div>
