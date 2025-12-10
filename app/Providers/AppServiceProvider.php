@@ -25,5 +25,10 @@ class AppServiceProvider extends ServiceProvider
         Auth::provider('encrypted', function ($app, array $config) {
             return new EncryptedUserProvider($app['hash'], $config['model']);
         });
+
+        // Force HTTPS in Production
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }
