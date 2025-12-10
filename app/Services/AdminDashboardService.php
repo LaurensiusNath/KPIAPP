@@ -14,7 +14,7 @@ class AdminDashboardService
 {
     /**
      * Get monthly division performance for chart
-     * Returns average KPI score per division per month
+     * Optimized: Uses single SQL query with Group By instead of nested loops
      */
     public function getMonthlyDivisionPerformance(): array
     {
@@ -25,32 +25,32 @@ class AdminDashboardService
 
         $months = $activePeriod->semester === 1 ? range(1, 6) : range(7, 12);
 
+        // Fetch raw data grouped by division and month in ONE query
+        $stats = DB::table('kpi_values')
+            ->join('kpis', 'kpi_values.kpi_id', '=', 'kpis.id')
+            ->select(
+                'kpi_values.division_id',
+                'kpi_values.month',
+                DB::raw('SUM(kpi_values.score * kpis.weight) as total_weighted_score'),
+                DB::raw('SUM(kpis.weight) as total_weight')
+            )
+            ->where('kpi_values.period_id', $activePeriod->id)
+            ->where('kpi_values.is_submitted', true)
+            ->whereIn('kpi_values.month', $months)
+            ->groupBy('kpi_values.division_id', 'kpi_values.month')
+            ->get();
+
         $divisions = Division::orderBy('name')->get();
 
         $result = [];
         foreach ($divisions as $division) {
             $monthlyData = [];
-
             foreach ($months as $month) {
-                // Calculate weighted average for division for this month
-                $kpiValues = KpiValue::query()
-                    ->join('kpis', 'kpi_values.kpi_id', '=', 'kpis.id')
-                    ->where('kpi_values.division_id', $division->id)
-                    ->where('kpi_values.period_id', $activePeriod->id)
-                    ->where('kpi_values.month', $month)
-                    ->where('kpi_values.is_submitted', true)
-                    ->select('kpi_values.score', 'kpis.weight')
-                    ->get();
+                $stat = $stats->where('division_id', $division->id)->where('month', $month)->first();
 
                 $average = null;
-                if ($kpiValues->isNotEmpty()) {
-                    $totalWeightedScore = 0;
-                    $totalWeight = 0;
-                    foreach ($kpiValues as $value) {
-                        $totalWeightedScore += $value->score * $value->weight;
-                        $totalWeight += $value->weight;
-                    }
-                    $average = $totalWeight > 0 ? round($totalWeightedScore / $totalWeight, 2) : null;
+                if ($stat && $stat->total_weight > 0) {
+                    $average = round($stat->total_weighted_score / $stat->total_weight, 2);
                 }
 
                 $monthlyData[] = [
@@ -72,7 +72,7 @@ class AdminDashboardService
 
     /**
      * Get monthly evaluation status per division
-     * Shows how many staff have been evaluated this month
+     * Optimized: Uses withCount to avoid N+1 queries
      */
     public function getMonthlyEvaluationStatus(): array
     {
@@ -83,34 +83,35 @@ class AdminDashboardService
 
         $currentMonth = (int) Carbon::now()->month;
 
-        $divisions = Division::with('leader')->orderBy('name')->get();
+        $divisions = Division::with('leader')
+            ->withCount([
+                'users as total_staff' => function ($query) {
+                    $query->where('role', 'user');
+                },
+                'users as evaluated_staff' => function ($query) use ($activePeriod, $currentMonth) {
+                    $query->where('role', 'user')
+                        ->whereHas('kpiValues', function ($q) use ($activePeriod, $currentMonth) {
+                            $q->where('period_id', $activePeriod->id)
+                                ->where('month', $currentMonth)
+                                ->where('is_submitted', true);
+                        });
+                }
+            ])
+            ->orderBy('name')
+            ->get();
 
-        return $divisions->map(function (Division $division) use ($activePeriod, $currentMonth) {
-            // Total staff in division
-            $totalStaff = User::where('division_id', $division->id)
-                ->where('role', 'user')
-                ->count();
-
-            // Staff evaluated this month
-            $evaluatedStaff = User::where('division_id', $division->id)
-                ->where('role', 'user')
-                ->whereHas('kpiValues', function ($q) use ($activePeriod, $currentMonth) {
-                    $q->where('period_id', $activePeriod->id)
-                        ->where('month', $currentMonth)
-                        ->where('is_submitted', true);
-                })
-                ->distinct()
-                ->count();
-
-            $percentage = $totalStaff > 0 ? round(($evaluatedStaff / $totalStaff) * 100, 1) : 0;
+        return $divisions->map(function ($division) {
+            $percentage = $division->total_staff > 0
+                ? round(($division->evaluated_staff / $division->total_staff) * 100, 1)
+                : 0;
 
             return [
                 'division_id' => $division->id,
                 'division_name' => $division->name,
                 'leader_name' => $division->leader?->name ?? 'Belum ada leader',
-                'total_staff' => $totalStaff,
-                'evaluated_staff' => $evaluatedStaff,
-                'pending_staff' => $totalStaff - $evaluatedStaff,
+                'total_staff' => $division->total_staff,
+                'evaluated_staff' => $division->evaluated_staff,
+                'pending_staff' => $division->total_staff - $division->evaluated_staff,
                 'percentage' => $percentage,
             ];
         })->toArray();
@@ -118,7 +119,7 @@ class AdminDashboardService
 
     /**
      * Get appraisal status summary
-     * Returns count of pending TL, pending HRD, and finalized appraisals
+     * Optimized: Uses single query with conditional aggregation
      */
     public function getAppraisalStatus(): array
     {
@@ -132,35 +133,27 @@ class AdminDashboardService
             ];
         }
 
-        // Pending Team Leader (not submitted by TL yet)
-        $pendingTL = Appraisal::where('period_id', $activePeriod->id)
-            ->whereNull('teamleader_submitted_at')
-            ->count();
-
-        // Pending HRD (TL submitted but HRD not yet)
-        $pendingHRD = Appraisal::where('period_id', $activePeriod->id)
-            ->whereNotNull('teamleader_submitted_at')
-            ->whereNull('hrd_submitted_at')
-            ->count();
-
-        // Finalized (both submitted and marked as final)
-        $finalized = Appraisal::where('period_id', $activePeriod->id)
-            ->where('is_finalized', true)
-            ->count();
-
-        $total = Appraisal::where('period_id', $activePeriod->id)->count();
+        $stats = DB::table('appraisals')
+            ->select(
+                DB::raw('COUNT(*) as total'),
+                DB::raw('SUM(CASE WHEN teamleader_submitted_at IS NULL THEN 1 ELSE 0 END) as pending_teamleader'),
+                DB::raw('SUM(CASE WHEN teamleader_submitted_at IS NOT NULL AND hrd_submitted_at IS NULL THEN 1 ELSE 0 END) as pending_hrd'),
+                DB::raw('SUM(CASE WHEN is_finalized = true THEN 1 ELSE 0 END) as finalized')
+            )
+            ->where('period_id', $activePeriod->id)
+            ->first();
 
         return [
-            'pending_teamleader' => $pendingTL,
-            'pending_hrd' => $pendingHRD,
-            'finalized' => $finalized,
-            'total' => $total,
+            'pending_teamleader' => (int) $stats->pending_teamleader,
+            'pending_hrd' => (int) $stats->pending_hrd,
+            'finalized' => (int) $stats->finalized,
+            'total' => (int) $stats->total,
         ];
     }
 
     /**
      * Get top 3 performers for current month
-     * Based on weighted average KPI score
+     * Optimized: Calculates average in SQL, sorts and limits in database
      */
     public function getTopPerformers(int $limit = 3): array
     {
@@ -171,54 +164,38 @@ class AdminDashboardService
 
         $currentMonth = (int) Carbon::now()->month;
 
-        $users = User::where('role', 'user')
-            ->with('division')
+        $topUsers = DB::table('users')
+            ->join('kpi_values', 'users.id', '=', 'kpi_values.user_id')
+            ->join('kpis', 'kpi_values.kpi_id', '=', 'kpis.id')
+            ->leftJoin('divisions', 'users.division_id', '=', 'divisions.id')
+            ->select(
+                'users.id',
+                'users.name',
+                'divisions.name as division_name',
+                DB::raw('SUM(kpi_values.score * kpis.weight) / NULLIF(SUM(kpis.weight), 0) as weighted_avg')
+            )
+            ->where('users.role', 'user')
+            ->where('kpi_values.period_id', $activePeriod->id)
+            ->where('kpi_values.month', $currentMonth)
+            ->where('kpi_values.is_submitted', true)
+            ->groupBy('users.id', 'users.name', 'divisions.name')
+            ->orderByDesc('weighted_avg')
+            ->limit($limit)
             ->get();
 
-        $performers = [];
-
-        foreach ($users as $user) {
-            // Calculate weighted average for this user for current month
-            $kpiValues = KpiValue::query()
-                ->join('kpis', 'kpi_values.kpi_id', '=', 'kpis.id')
-                ->where('kpi_values.user_id', $user->id)
-                ->where('kpi_values.period_id', $activePeriod->id)
-                ->where('kpi_values.month', $currentMonth)
-                ->where('kpi_values.is_submitted', true)
-                ->select('kpi_values.score', 'kpis.weight')
-                ->get();
-
-            if ($kpiValues->isEmpty()) {
-                continue;
-            }
-
-            $totalWeightedScore = 0;
-            $totalWeight = 0;
-            foreach ($kpiValues as $value) {
-                $totalWeightedScore += $value->score * $value->weight;
-                $totalWeight += $value->weight;
-            }
-
-            $average = $totalWeight > 0 ? round($totalWeightedScore / $totalWeight, 2) : 0;
-
-            if ($average > 0) {
-                $performers[] = [
-                    'user_id' => $user->id,
-                    'name' => $user->name,
-                    'division' => $user->division?->name ?? '-',
-                    'score' => $average,
-                ];
-            }
-        }
-
-        // Sort by score descending and take top N
-        usort($performers, fn($a, $b) => $b['score'] <=> $a['score']);
-
-        return array_slice($performers, 0, $limit);
+        return $topUsers->map(function ($user) {
+            return [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'division' => $user->division_name ?? '-',
+                'score' => round($user->weighted_avg ?? 0, 2),
+            ];
+        })->toArray();
     }
 
     /**
      * Get division summary with statistics
+     * Optimized: Uses aggregated queries and withCount to reduce database calls
      */
     public function getDivisionSummary(): array
     {
@@ -229,63 +206,57 @@ class AdminDashboardService
 
         $currentMonth = (int) Carbon::now()->month;
 
-        $divisions = Division::with('leader')->orderBy('name')->get();
+        // Get KPI averages grouped by division in one query
+        $kpiStats = DB::table('kpi_values')
+            ->join('kpis', 'kpi_values.kpi_id', '=', 'kpis.id')
+            ->select(
+                'kpi_values.division_id',
+                DB::raw('SUM(kpi_values.score * kpis.weight) as total_weighted'),
+                DB::raw('SUM(kpis.weight) as total_weight')
+            )
+            ->where('kpi_values.period_id', $activePeriod->id)
+            ->where('kpi_values.month', $currentMonth)
+            ->where('kpi_values.is_submitted', true)
+            ->groupBy('kpi_values.division_id')
+            ->get()
+            ->keyBy('division_id');
 
-        return $divisions->map(function (Division $division) use ($activePeriod, $currentMonth) {
-            // Count staff
-            $staffCount = User::where('division_id', $division->id)
-                ->where('role', 'user')
-                ->count();
+        // Get divisions with counts in one query
+        $divisions = Division::with('leader')
+            ->withCount([
+                'users as staff_count' => fn($q) => $q->where('role', 'user'),
+                'appraisals as appraisal_finalized' => fn($q) => $q->where('period_id', $activePeriod->id)->where('is_finalized', true),
+                'appraisals as appraisal_pending' => fn($q) => $q->where('period_id', $activePeriod->id)->where('is_finalized', false)
+            ])
+            ->orderBy('name')
+            ->get();
 
-            // Calculate weighted average for current month
-            $kpiValues = KpiValue::query()
-                ->join('kpis', 'kpi_values.kpi_id', '=', 'kpis.id')
-                ->where('kpi_values.division_id', $division->id)
-                ->where('kpi_values.period_id', $activePeriod->id)
-                ->where('kpi_values.month', $currentMonth)
-                ->where('kpi_values.is_submitted', true)
-                ->select('kpi_values.score', 'kpis.weight')
-                ->get();
-
-            $monthlyAverage = null;
-            if ($kpiValues->isNotEmpty()) {
-                $totalWeightedScore = 0;
-                $totalWeight = 0;
-                foreach ($kpiValues as $value) {
-                    $totalWeightedScore += $value->score * $value->weight;
-                    $totalWeight += $value->weight;
-                }
-                $monthlyAverage = $totalWeight > 0 ? round($totalWeightedScore / $totalWeight, 2) : null;
+        return $divisions->map(function ($division) use ($kpiStats) {
+            $avg = null;
+            if (isset($kpiStats[$division->id]) && $kpiStats[$division->id]->total_weight > 0) {
+                $avg = round($kpiStats[$division->id]->total_weighted / $kpiStats[$division->id]->total_weight, 2);
             }
-
-            // Count appraisal status
-            $appraisalFinalized = Appraisal::where('division_id', $division->id)
-                ->where('period_id', $activePeriod->id)
-                ->where('is_finalized', true)
-                ->count();
-
-            $appraisalPending = Appraisal::where('division_id', $division->id)
-                ->where('period_id', $activePeriod->id)
-                ->where('is_finalized', false)
-                ->count();
 
             return [
                 'division_id' => $division->id,
                 'division_name' => $division->name,
                 'leader_name' => $division->leader?->name ?? 'Belum ada leader',
-                'staff_count' => $staffCount,
-                'monthly_average' => $monthlyAverage,
-                'appraisal_finalized' => $appraisalFinalized,
-                'appraisal_pending' => $appraisalPending,
+                'staff_count' => $division->staff_count,
+                'monthly_average' => $avg,
+                'appraisal_finalized' => $division->appraisal_finalized,
+                'appraisal_pending' => $division->appraisal_pending,
             ];
         })->toArray();
     }
 
     /**
      * Get active period
+     * Cached for 60 seconds as it's used in every method
      */
     public function getActivePeriod(): ?Period
     {
-        return Period::where('is_active', true)->first();
+        return cache()->remember('active_period', 60, function () {
+            return Period::where('is_active', true)->first();
+        });
     }
 }
