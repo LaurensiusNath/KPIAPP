@@ -24,8 +24,12 @@
                         <a href="{{ route('admin.division.detail', $division) }}"
                             class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
                     </li>
+                    <li>
+                        <button type="button" wire:click="confirmDelete"
+                            class="w-full text-left block py-2 px-4 text-sm text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-gray-600">Delete</button>
+                    </li>
                 </ul>
-                {{-- <div class="py-1">
+                <div class="py-1">
                     @if ($confirmingDelete)
                         <div class="px-4 py-2 space-y-2">
                             <p class="text-xs text-gray-600 dark:text-gray-300">Hapus divisi ini? Semua anggota akan
@@ -37,11 +41,8 @@
                                     class="flex-1 px-2 py-1 rounded border border-gray-300 dark:border-gray-500">Tidak</button>
                             </div>
                         </div>
-                    @else
-                        <button type="button" wire:click="confirmDelete"
-                            class="w-full text-left block py-2 px-4 text-sm text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-gray-600">Delete</button>
                     @endif
-                </div> --}}
+                </div>
             </div>
         @endif
     </td>
