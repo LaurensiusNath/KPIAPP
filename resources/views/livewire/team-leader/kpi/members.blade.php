@@ -88,12 +88,12 @@
                                     <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
                                         aria-labelledby="member-{{ $m['id'] }}-button">
                                         <li>
-                                            <a href="{{ route('tl.kpi.monthly', ['user' => $m['id']]) }}"
+                                            <a href="{{ route('tl.kpis.monthly', ['user' => $m['id']]) }}"
                                                 class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Isi
                                                 Penilaian Bulanan</a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('tl.appraisal.form', ['user' => $m['id']]) }}"
+                                            <a href="{{ route('tl.appraisals.form', ['user' => $m['id']]) }}"
                                                 class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Isi
                                                 Penilaian Appraisal</a>
                                         </li>

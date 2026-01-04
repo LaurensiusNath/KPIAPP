@@ -20,7 +20,7 @@
                       aria-labelledby="{{ $user->id }}-button">
 
                       <li>
-                          <a href="{{ route('admin.user.analytics', $user) }}"
+                          <a href="{{ route('admin.users.analytics', $user) }}"
                               class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Show</a>
                       </li>
 

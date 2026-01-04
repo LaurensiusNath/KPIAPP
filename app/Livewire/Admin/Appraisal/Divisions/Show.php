@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Appraisal\Divisions;
 use App\Models\Division;
 use App\Models\Period;
 use App\Services\AppraisalService;
+use App\Services\DivisionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
@@ -24,7 +25,7 @@ class Show extends Component
     {
         if (!$period->exists) {
             session()->flash('error', 'Periode tidak ditemukan. Silakan pilih periode yang valid.');
-            $this->redirectRoute('admin.appraisal.divisions.index');
+            $this->redirectRoute('admin.appraisals.divisions.index');
             return;
         }
 
@@ -38,7 +39,7 @@ class Show extends Component
         $this->dispatch('division-appraisal-chart-updated', data: $this->trendSeries);
     }
 
-    public function downloadReport()
+    public function downloadReport(DivisionService $divisionService)
     {
         if (!$this->period || !$this->division) {
             session()->flash('error', 'Data tidak lengkap untuk download laporan.');
@@ -46,7 +47,7 @@ class Show extends Component
         }
 
         // Refresh division data with leader relation
-        $division = Division::with('leader')->find($this->division->id);
+        $division = $divisionService->findDivisionById($this->division->id);
 
         $data = [
             'division' => $division,
@@ -57,7 +58,7 @@ class Show extends Component
             'generatedAt' => now()->translatedFormat('d F Y H:i'),
         ];
 
-        $pdf = Pdf::loadView('pdf.admin.appraisal.division', $data);
+        $pdf = Pdf::loadView('pdf.admin.appraisals.divisions.show', $data);
 
         // Set landscape for better table display
         $pdf->setPaper('a4', 'landscape');
@@ -79,6 +80,6 @@ class Show extends Component
 
     public function render()
     {
-        return view('livewire.admin.appraisal.divisions.show');
+        return view('livewire.admin.appraisals.divisions.show');
     }
 }

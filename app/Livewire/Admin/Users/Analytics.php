@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Users;
 use App\Models\User;
 use App\Models\Period;
 use App\Services\PeriodService;
+use App\Services\UserService;
 use App\Services\UserAnalyticsService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -27,14 +28,14 @@ class Analytics extends Component
         'month' => ['except' => null],
     ];
 
-    public function mount(PeriodService $periodService, User $user, UserAnalyticsService $analyticsService): void
+    public function mount(PeriodService $periodService, User $user, UserAnalyticsService $analyticsService, UserService $userService): void
     {
-        $this->user = $user->load('division');
+        $this->user = $userService->loadDivision($user);
         $this->period = $periodService->getActivePeriod();
 
         if (!$this->period) {
             session()->flash('error', 'Belum ada periode aktif untuk analitik user.');
-            $this->redirectRoute('admin.users');
+            $this->redirectRoute('admin.users.index');
             return;
         }
 
@@ -104,7 +105,7 @@ class Analytics extends Component
             'trendSeries' => $this->trendSeries,
         ];
 
-        $pdf = Pdf::loadView('pdf.admin.user-analytics', $data);
+        $pdf = Pdf::loadView('pdf.admin.users.analytics.index', $data);
         $filename = sprintf('Laporan-User-%s-%s.pdf', $this->user->name, $data['monthLabel']);
 
         return response()->streamDownload(fn() => print($pdf->output()), $filename);
@@ -113,7 +114,7 @@ class Analytics extends Component
     public function render()
     {
         if (!$this->period) {
-            return redirect()->route('admin.users');
+            return redirect()->route('admin.users.index');
         }
 
         return view('livewire.admin.users.analytics');

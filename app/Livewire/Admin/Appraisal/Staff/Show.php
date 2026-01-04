@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Appraisal\Staff;
 use App\Models\Period;
 use App\Models\User;
 use App\Services\AppraisalService;
+use App\Services\UserService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
@@ -17,15 +18,15 @@ class Show extends Component
     public Period $period;
     public array $detail = [];
 
-    public function mount(User $user, Period $period, AppraisalService $appraisalService): void
+    public function mount(User $user, Period $period, AppraisalService $appraisalService, UserService $userService): void
     {
-        $this->user = $user->load('division');
+        $this->user = $userService->loadDivision($user);
         $this->period = $period;
 
         $this->detail = $appraisalService->getStaffAppraisalDetail($user, $period);
     }
 
-    public function downloadReport()
+    public function downloadReport(UserService $userService)
     {
         if (!$this->period || !$this->user) {
             session()->flash('error', 'Data tidak lengkap untuk download laporan.');
@@ -33,7 +34,7 @@ class Show extends Component
         }
 
         // Refresh user data with division relation
-        $user = User::with('division')->find($this->user->id);
+        $user = $userService->findUserWithDivisionById($this->user->id);
 
         $data = [
             'user' => $user,
@@ -42,7 +43,7 @@ class Show extends Component
             'generatedAt' => now()->translatedFormat('d F Y H:i'),
         ];
 
-        $pdf = Pdf::loadView('pdf.admin.appraisal.staff', $data);
+        $pdf = Pdf::loadView('pdf.admin.appraisals.staff.show', $data);
 
         // Clear any view cache
         $pdf->setPaper('a4', 'landscape');
@@ -59,6 +60,6 @@ class Show extends Component
 
     public function render()
     {
-        return view('livewire.admin.appraisal.staff.show');
+        return view('livewire.admin.appraisals.staff.show');
     }
 }

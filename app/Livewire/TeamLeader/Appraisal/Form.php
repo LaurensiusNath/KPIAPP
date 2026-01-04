@@ -7,7 +7,9 @@ use App\Models\Appraisal;
 use App\Services\AppraisalService;
 use App\Services\Exceptions\DomainValidationException;
 use App\Services\PeriodService;
+use App\Services\TeamLeader\TeamLeaderAppraisalService;
 use App\Models\Period;
+use App\Services\UserService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -24,11 +26,11 @@ class Form extends Component
     public bool $submissionWindowOpen = false;
     public string $submissionWindowMessage = '';
 
-    public function mount(User $user, AppraisalService $service, PeriodService $periodService)
+    public function mount(User $user, AppraisalService $service, PeriodService $periodService, TeamLeaderAppraisalService $teamLeaderAppraisalService, UserService $userService)
     {
-        $this->user = $user->load('division');
+        $this->user = $userService->loadDivision($user);
 
-        $activePeriod = $periodService->getActivePeriod();
+        $activePeriod = $teamLeaderAppraisalService->getActivePeriod($periodService);
 
         if (!$activePeriod) {
             session()->flash('error', 'Belum ada periode aktif untuk appraisal.');
@@ -37,16 +39,11 @@ class Form extends Component
         }
 
         $this->period = $activePeriod;
-        $this->submissionWindowOpen = $periodService->isCurrentWindowForAppraisal($this->period);
-        $this->submissionWindowMessage = $this->period->semester === 1
-            ? 'Penilaian appraisal semester 1 dibuka 25-31 Juni.'
-            : 'Penilaian appraisal semester 2 dibuka 25-31 Desember.';
+        $this->submissionWindowOpen = $teamLeaderAppraisalService->isSubmissionWindowOpen($periodService, $this->period);
+        $this->submissionWindowMessage = $teamLeaderAppraisalService->getSubmissionWindowMessage($this->period);
 
         // Load appraisal if exists
-        $this->appraisal = Appraisal::query()
-            ->where('user_id', $this->user->id)
-            ->where('period_id', $this->period->id)
-            ->first();
+        $this->appraisal = $teamLeaderAppraisalService->findAppraisal($this->user, $this->period);
 
         // Summary
         $this->summary = $service->getSemesterSummary($this->user->id, $this->period->id);
@@ -85,7 +82,7 @@ class Form extends Component
         $this->statusBadge = 'Pending';
     }
 
-    public function submit(AppraisalService $service)
+    public function submit(AppraisalService $service, TeamLeaderAppraisalService $teamLeaderAppraisalService)
     {
         if (!$this->period) {
             session()->flash('error', 'Periode aktif belum ditetapkan oleh admin.');
@@ -109,13 +106,11 @@ class Form extends Component
             session()->flash($result['success'] ? 'success' : 'error', $result['message']);
 
             if ($result['success']) {
-                return redirect()->route('tl.appraisal.form', ['user' => $this->user->id]);
+                return redirect()->route('tl.appraisals.form', ['user' => $this->user->id]);
             }
 
             // Refresh appraisal for non-success states (validation warnings, etc.)
-            $this->appraisal = Appraisal::where('user_id', $this->user->id)
-                ->where('period_id', $this->period->id)
-                ->first();
+            $this->appraisal = $teamLeaderAppraisalService->findAppraisal($this->user, $this->period);
             $this->computeStatus();
         } catch (DomainValidationException $e) {
             session()->flash('error', $e->getMessage());
@@ -131,6 +126,6 @@ class Form extends Component
             return redirect()->route('tl.members');
         }
 
-        return view('livewire.team-leader.appraisal.form');
+        return view('livewire.team-leader.appraisals.form');
     }
 }

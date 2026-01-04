@@ -6,6 +6,7 @@ use App\Models\Period;
 use App\Models\User;
 use App\Services\KpiService;
 use App\Services\PeriodService;
+use App\Services\TeamLeader\TeamLeaderKpiItemService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -19,21 +20,22 @@ class Items extends Component
     public bool $canEdit = false;
     public float $totalWeight = 0.0;
 
-    public function mount(User $user, PeriodService $periodService, KpiService $kpiService): void
+    public function mount(User $user, PeriodService $periodService, KpiService $kpiService, TeamLeaderKpiItemService $tlKpiItemService): void
     {
         $actor = Auth::user();
-        // Basic ownership check in UI (backend validates too)
-        if ($actor->division_id === null || $user->division_id !== $actor->division_id) {
-            // In production you may redirect or 403
-            abort(403, 'Unauthorized');
+        if (!$actor) abort(403);
+        try {
+            $tlKpiItemService->ensureActorCanManageUser($actor, $user);
+        } catch (\App\Services\Exceptions\UnauthorizedException $e) {
+            abort(403, $e->getMessage());
         }
 
         $this->user = $user;
 
-        $this->activePeriod = $periodService->getActivePeriod();
+        $this->activePeriod = $tlKpiItemService->getActivePeriod($periodService);
         if ($this->activePeriod) {
-            $this->canEdit = $periodService->isCurrentWindowForKpiCreation($this->activePeriod);
-            $this->totalWeight = $kpiService->getTotalWeightForUserPeriod($this->user, $this->activePeriod);
+            $this->canEdit = $tlKpiItemService->isCreationWindowOpen($periodService, $this->activePeriod);
+            $this->totalWeight = $tlKpiItemService->getTotalWeightForUserPeriod($kpiService, $this->user, $this->activePeriod);
         }
     }
 

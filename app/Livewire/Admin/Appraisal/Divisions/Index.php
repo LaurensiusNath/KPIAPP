@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Appraisal\Divisions;
 use App\Models\Division;
 use App\Models\Period;
 use App\Services\AppraisalService;
+use App\Services\Admin\AdminAppraisalService;
 use App\Services\PeriodService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -17,15 +18,11 @@ class Index extends Component
     public ?int $periodId = null;
     public array $divisions = [];
 
-    public function mount(PeriodService $periodService, AppraisalService $appraisalService): void
+    public function mount(PeriodService $periodService, AppraisalService $appraisalService, AdminAppraisalService $adminAppraisalService): void
     {
-        $this->periods = Period::query()
-            ->orderByDesc('is_active')
-            ->orderBy('year', 'desc')
-            ->orderBy('semester', 'desc')
-            ->get();
+        $this->periods = $adminAppraisalService->getPeriodsForDivisionPicker();
 
-        $this->period = $periodService->getActivePeriod();
+        $this->period = $adminAppraisalService->getActivePeriod($periodService);
         $this->periodId = $this->period?->id;
 
         if ($this->period) {
@@ -33,9 +30,11 @@ class Index extends Component
         }
     }
 
-    public function updatedPeriodId(AppraisalService $appraisalService): void
+    public function updatedPeriodId(PeriodService $periodService, AppraisalService $appraisalService): void
     {
-        $this->period = Period::find($this->periodId);
+        $this->period = $this->periodId
+            ? $periodService->findById((int) $this->periodId)
+            : null;
         if ($this->period) {
             $this->loadDivisions($appraisalService);
         }
@@ -48,22 +47,12 @@ class Index extends Component
             return;
         }
 
-        $allDivisions = Division::orderBy('name')->get();
-
-        $this->divisions = $allDivisions->map(function (Division $division) use ($appraisalService) {
-            $summary = $appraisalService->getDivisionAppraisalSummary($division, $this->period);
-
-            return [
-                'id' => $division->id,
-                'name' => $division->name,
-                'staff_count' => $summary['staff_count'],
-                'overall_average' => $summary['overall_average'],
-            ];
-        })->toArray();
+        $this->divisions = app(AdminAppraisalService::class)
+            ->getDivisionRowsForPeriod($this->period, $appraisalService);
     }
 
     public function render()
     {
-        return view('livewire.admin.appraisal.divisions.index');
+        return view('livewire.admin.appraisals.divisions.index');
     }
 }

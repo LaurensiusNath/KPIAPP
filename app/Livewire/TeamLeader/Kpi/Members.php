@@ -2,10 +2,10 @@
 
 namespace App\Livewire\TeamLeader\Kpi;
 
-use App\Models\Appraisal;
 use App\Models\User;
 use App\Services\KpiValueService;
 use App\Services\PeriodService;
+use App\Services\TeamLeader\TeamLeaderAppraisalService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -17,14 +17,14 @@ class Members extends Component
     public int $month;
     public string $search = '';
 
-    public function mount(KpiValueService $service, PeriodService $periodService)
+    public function mount(KpiValueService $service, PeriodService $periodService, TeamLeaderAppraisalService $teamLeaderAppraisalService)
     {
         $tl = Auth::user();
         $period = $periodService->getActivePeriod();
         $this->month = (int) now()->month;
 
         $collection = $service->getMembersForTeamLeader($tl);
-        $this->members = $collection->map(function (User $u) use ($service, $period) {
+        $this->members = $collection->map(function (User $u) use ($service, $period, $teamLeaderAppraisalService) {
             $monthlyStatus = 'Belum Dinilai';
             $appraisalStatus = 'Belum Ada';
 
@@ -34,10 +34,7 @@ class Members extends Component
                 $monthlyStatus = $submitted ? 'Sudah Dinilai' : 'Belum Dinilai';
 
                 // Status appraisal
-                $appraisal = Appraisal::query()
-                    ->where('user_id', $u->id)
-                    ->where('period_id', $period->id)
-                    ->first();
+                $appraisal = $teamLeaderAppraisalService->findAppraisal($u, $period);
 
                 if ($appraisal) {
                     if ($appraisal->is_finalized) {

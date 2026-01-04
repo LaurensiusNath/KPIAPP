@@ -55,7 +55,7 @@
                             {{ $hasKpis ? 'Edit KPIs' : 'Create KPIs' }}
                         </button>
                     @else
-                        <a href="{{ route('tl.kpi.plan', ['user' => $user->id]) }}"
+                        <a href="{{ route('tl.kpis.plan', ['user' => $user->id]) }}"
                             class="px-4 py-2 rounded text-white bg-indigo-600 hover:bg-indigo-700">
                             {{ $hasKpis ? 'Edit KPIs' : 'Create KPIs' }}
                         </a>

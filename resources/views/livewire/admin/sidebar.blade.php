@@ -448,8 +448,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.users') }}"
-                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ $is('admin.users') }}">
+                        <a href="{{ route('admin.users.index') }}"
+                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ $is('admin.users.index', 'admin.users.create', 'admin.users.edit', 'admin.users.analytics') }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -459,8 +459,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.divisions') }}"
-                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ $is('admin.divisions', 'admin.division.detail') }}">
+                        <a href="{{ route('admin.divisions.index') }}"
+                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ $is('admin.divisions.index', 'admin.divisions.create', 'admin.divisions.edit', 'admin.divisions.analytics') }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h4l2 9h10l2-5H9" />
@@ -469,8 +469,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.periods') }}"
-                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ $is('admin.periods', 'admin.period.detail') }}">
+                        <a href="{{ route('admin.periods.index') }}"
+                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ $is('admin.periods.index', 'admin.periods.create', 'admin.periods.show') }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -480,8 +480,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.appraisal.divisions.index') }}"
-                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ $is('admin.appraisal.divisions.index', 'admin.appraisal.divisions.show', 'admin.appraisal.staff.show', 'admin.appraisal.index', 'admin.appraisal.form') }}">
+                        <a href="{{ route('admin.appraisals.divisions.index') }}"
+                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ $is('admin.appraisals.divisions.index', 'admin.appraisals.divisions.show', 'admin.appraisals.staff.show', 'admin.appraisals.index', 'admin.appraisals.form', 'admin.appraisal.divisions.index', 'admin.appraisal.divisions.show', 'admin.appraisal.staff.show', 'admin.appraisal.index', 'admin.appraisal.form') }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />

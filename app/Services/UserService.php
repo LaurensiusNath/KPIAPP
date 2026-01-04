@@ -46,6 +46,16 @@ class UserService
         return User::findOrFail($userId);
     }
 
+    public function findUserWithDivisionById(int $userId): User
+    {
+        return User::query()->with('division')->findOrFail($userId);
+    }
+
+    public function loadDivision(User $user): User
+    {
+        return $user->load('division');
+    }
+
     /**
      * Get available users for division leader assignment
      * If divisionId is provided: users with role 'user' who have no division OR are in the same division
@@ -67,6 +77,24 @@ class UserService
         }
 
         return $query->orderBy('name', 'asc')->get();
+    }
+
+    public function isAvailableLeaderId(int $userId, ?int $divisionId = null): bool
+    {
+        $query = User::query()
+            ->whereKey($userId)
+            ->where('role', 'user');
+
+        if ($divisionId !== null) {
+            $query->where(function ($q) use ($divisionId) {
+                $q->whereNull('division_id')
+                    ->orWhere('division_id', $divisionId);
+            });
+        } else {
+            $query->whereNull('division_id');
+        }
+
+        return $query->exists();
     }
 
     /**

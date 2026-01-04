@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\Appraisal;
 
-use App\Services\AppraisalService;
+use App\Services\Admin\AdminAppraisalService;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -20,9 +20,9 @@ class Index extends Component
     public $periods; // Collection<Period>
     public int $perPage = 25;
 
-    public function mount(AppraisalService $service)
+    public function mount(AdminAppraisalService $adminAppraisalService)
     {
-        $this->periods = $service->getPeriodsForIndex();
+        $this->periods = $adminAppraisalService->getPeriodsForIndex();
         // periodId auto-populated from ?period= via queryString mapping
         if (!$this->periodId) {
             $this->periodId = $this->periods->first()?->id;
@@ -32,13 +32,13 @@ class Index extends Component
     public function updatedPeriodId()
     {
         // Redirect to ensure clean state & pagination reset
-        return redirect()->route('admin.appraisal.index', ['period' => $this->periodId]);
+        return redirect()->route('admin.appraisals.index', ['period' => $this->periodId]);
     }
 
     public function changePeriod($value)
     {
         $this->periodId = $value;
-        return redirect()->route('admin.appraisal.index', ['period' => $this->periodId]);
+        return redirect()->route('admin.appraisals.index', ['period' => $this->periodId]);
     }
 
     public function refresh()
@@ -48,15 +48,15 @@ class Index extends Component
 
     public function goToAppraisal($userId)
     {
-        return redirect()->route('admin.appraisal.form', ['user' => $userId, 'period' => $this->periodId]);
+        return redirect()->route('admin.appraisals.form', ['user' => $userId, 'period' => $this->periodId]);
     }
 
-    public function render(AppraisalService $service)
+    public function render(AdminAppraisalService $adminAppraisalService)
     {
-        $users = $service->getUsersForIndexPaginated($this->perPage);
-        $appraisals = $service->getAppraisalsForPeriod($this->periodId);
+        $users = $adminAppraisalService->getUsersForIndexPaginated($this->perPage);
+        $appraisals = $adminAppraisalService->getAppraisalsForPeriod($this->periodId);
 
-        return view('livewire.admin.appraisal.index', [
+        return view('livewire.admin.appraisals.index', [
             'users' => $users,
             'appraisals' => $appraisals,
         ]);

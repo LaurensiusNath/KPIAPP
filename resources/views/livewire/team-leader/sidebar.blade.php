@@ -544,7 +544,7 @@
                     </li>
                     <li>
                         <a href="{{ route('tl.members') }}"
-                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ request()->routeIs('tl.members', 'tl.kpi.items', 'tl.kpi.plan', 'tl.kpi.history', 'tl.user.analytics') ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ request()->routeIs('tl.members', 'tl.kpis.items', 'tl.kpis.plan', 'tl.kpis.history', 'tl.user.analytics') ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -555,8 +555,8 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('tl.kpi.members') }}"
-                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ request()->routeIs('tl.kpi.members', 'tl.kpi.monthly', 'tl.appraisal.form') ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                        <a href="{{ route('tl.kpis.members') }}"
+                            class="flex items-center gap-3 p-2 rounded-lg text-sm font-medium {{ request()->routeIs('tl.kpis.members', 'tl.kpis.monthly', 'tl.appraisals.form', 'tl.appraisal.form') ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"

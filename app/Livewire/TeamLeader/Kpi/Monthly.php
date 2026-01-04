@@ -3,9 +3,7 @@
 namespace App\Livewire\TeamLeader\Kpi;
 
 use App\Models\User;
-use App\Services\Exceptions\DomainValidationException;
-use App\Services\KpiValueService;
-use App\Services\PeriodService;
+use App\Services\TeamLeader\TeamLeaderKpiMonthlyEvaluationService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -23,44 +21,29 @@ class Monthly extends Component
     public array $notes = [];
     public array $scaleLegend = [];
 
-    public function mount(User $user, KpiValueService $service, PeriodService $periodService)
+    public function mount(User $user, TeamLeaderKpiMonthlyEvaluationService $service)
     {
         $this->user = $user;
-        $period = $periodService->getActivePeriod();
-        $this->activePeriodId = $period?->id;
-        $this->month = (int) now()->month;
-
-        if (!$period) {
-            $this->kpis = collect();
-            $this->readonly = true;
-            session()->flash('error', 'Periode aktif tidak ditemukan.');
-            return;
+        $actor = Auth::user();
+        if (!$actor) {
+            abort(403);
         }
 
-        // Validasi periode vs bulan berjalan dilakukan saat mount agar UI ramah
-        try {
-            $service->ensurePeriodMatchesCurrentDate($period);
-        } catch (DomainValidationException $e) {
-            $this->kpis = collect();
-            $this->readonly = true;
-            session()->flash('error', $e->getMessage());
-            return;
+        $loaded = $service->load($this->user, $actor);
+        $this->activePeriodId = $loaded['activePeriodId'];
+        $this->month = $loaded['month'];
+        $this->kpis = $loaded['kpis'];
+        $this->scaleLegend = $loaded['scaleLegend'];
+        $this->scores = $loaded['scores'];
+        $this->notes = $loaded['notes'];
+        $this->readonly = $loaded['readonly'];
+
+        if (!empty($loaded['errorMessage'])) {
+            session()->flash('error', $loaded['errorMessage']);
         }
-
-        $this->kpis = $service->getUserKpisForPeriod($this->user, $period);
-        $this->scaleLegend = $this->buildScaleLegend($this->kpis);
-        $values = $service->getMonthlyValues($this->user, $period, $this->month);
-
-        foreach ($this->kpis as $kpi) {
-            $value = $values->get($kpi->id);
-            $this->scores[$kpi->id] = $value ? (int)($value->score ?? 0) : 0;
-            $this->notes[$kpi->id] = $value?->note ?? '';
-        }
-
-        $this->readonly = $service->alreadySubmitted($this->user, $period, $this->month) || !$service->isEvaluationWindow();
     }
 
-    public function submit(KpiValueService $service)
+    public function submit(TeamLeaderKpiMonthlyEvaluationService $service)
     {
         if ($this->readonly) {
             session()->flash('error', 'Form tidak dapat disubmit saat ini.');
@@ -74,28 +57,17 @@ class Monthly extends Component
         }
         $this->validate($rules);
 
-        $result = $service->submitMonthlyEvaluation($this->user, Auth::user(), $this->scores, $this->notes);
+        $actor = Auth::user();
+        if (!$actor) {
+            abort(403);
+        }
+
+        $result = $service->submit($this->user, $actor, $this->scores, $this->notes);
         session()->flash($result['success'] ? 'success' : 'error', $result['message']);
 
         if ($result['success']) {
             $this->readonly = true;
         }
-    }
-
-    protected function buildScaleLegend($kpis): array
-    {
-        $legend = [];
-
-        foreach ($kpis as $kpi) {
-            $raw = is_array($kpi->criteria_scale) ? $kpi->criteria_scale : [];
-            $normalized = [];
-            for ($score = 1; $score <= 5; $score++) {
-                $normalized[$score] = (string) ($raw[$score] ?? ($raw[(string) $score] ?? ''));
-            }
-            $legend[$kpi->id] = $normalized;
-        }
-
-        return $legend;
     }
 
     public function render()

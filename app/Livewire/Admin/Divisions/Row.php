@@ -16,13 +16,7 @@ class Row extends Component
 
     public function mount(Division $division): void
     {
-        $this->division = $division->load('leader')->loadCount('users');
-        $this->syncDerivedData();
-    }
-
-    public function hydrate(): void
-    {
-        $this->division->loadMissing('leader')->loadCount('users');
+        $this->division = $division;
         $this->syncDerivedData();
     }
 

@@ -37,7 +37,7 @@ class Analytics extends Component
 
         if (!$this->period) {
             session()->flash('error', 'Belum ada periode aktif untuk divisional analytics.');
-            $this->redirectRoute('admin.divisions');
+            $this->redirectRoute('admin.divisions.index');
             return;
         }
 
@@ -110,7 +110,7 @@ class Analytics extends Component
             'trendSeries' => $this->trendSeries,
         ];
 
-        $pdf = Pdf::loadView('pdf.admin.division-analytics', $data);
+        $pdf = Pdf::loadView('pdf.admin.divisions.analytics.index', $data);
         $filename = sprintf('Laporan-Divisi-%s-%s.pdf', $this->division->name, $data['monthLabel']);
 
         return response()->streamDownload(fn() => print($pdf->output()), $filename);

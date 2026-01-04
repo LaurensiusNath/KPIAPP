@@ -15,6 +15,14 @@ use Carbon\Carbon;
 
 class AppraisalService
 {
+    public function findAppraisalForUserAndPeriod(int $userId, int $periodId): ?Appraisal
+    {
+        return Appraisal::query()
+            ->where('user_id', $userId)
+            ->where('period_id', $periodId)
+            ->first();
+    }
+
     public function getSemesterMonths(Period $period): array
     {
         return $period->semester === 1 ? [1, 2, 3, 4, 5, 6] : [7, 8, 9, 10, 11, 12];

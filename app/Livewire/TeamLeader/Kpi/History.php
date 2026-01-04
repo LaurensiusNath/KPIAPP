@@ -5,6 +5,7 @@ namespace App\Livewire\TeamLeader\Kpi;
 use App\Models\User;
 use App\Services\KpiValueService;
 use App\Services\PeriodService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -17,6 +18,15 @@ class History extends Component
 
     public function mount(User $user, KpiValueService $service, PeriodService $periodService)
     {
+        $actor = Auth::user();
+        if (!$actor) {
+            abort(403);
+        }
+
+        // Prevent direct URL access to users outside TL division
+        $service->ensureTeamLeader($actor);
+        $service->ensureSameDivision($actor, $user);
+
         $this->user = $user;
         $this->activePeriod = $periodService->getActivePeriod();
         if (!$this->activePeriod) {

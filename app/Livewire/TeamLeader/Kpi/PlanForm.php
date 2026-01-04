@@ -9,6 +9,7 @@ use App\Services\Exceptions\PeriodClosedException;
 use App\Services\Exceptions\UnauthorizedException;
 use App\Services\KpiService;
 use App\Services\PeriodService;
+use App\Services\TeamLeader\TeamLeaderKpiItemService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
@@ -26,21 +27,23 @@ class PlanForm extends Component
 
     public float $totalWeight = 0.0;
 
-    public function mount(User $user, PeriodService $periodService, KpiService $kpiService): void
+    public function mount(User $user, PeriodService $periodService, KpiService $kpiService, TeamLeaderKpiItemService $tlKpiItemService): void
     {
         $actor = Auth::user();
         if (!$actor) abort(403);
 
-        if ($actor->division_id === null || $actor->division_id !== $user->division_id) {
-            abort(403, 'User not in your division');
+        try {
+            $tlKpiItemService->ensureActorCanManageUser($actor, $user);
+        } catch (UnauthorizedException $e) {
+            abort(403, $e->getMessage());
         }
 
         $this->user = $user;
-        $this->activePeriod = $periodService->getActivePeriod();
+        $this->activePeriod = $tlKpiItemService->getActivePeriod($periodService);
         if (!$this->activePeriod) {
             abort(403, 'No active period available');
         }
-        if (!$periodService->isCurrentWindowForKpiCreation($this->activePeriod)) {
+        if (!$tlKpiItemService->isCreationWindowOpen($periodService, $this->activePeriod)) {
             abort(403, 'KPI can only be created during the creation window (Jan 1-10 or Jul 1-10).');
         }
 
@@ -48,21 +51,7 @@ class PlanForm extends Component
         $existing = $kpiService->getKpisByUserAndPeriod($user, $this->activePeriod);
         if ($existing->count() > 0) {
             $this->hadExistingKpis = true;
-            $this->items = $existing->map(function ($kpi) {
-                $rawScale = is_array($kpi->criteria_scale) ? $kpi->criteria_scale : [];
-                $normScale = [];
-                for ($lvl = 1; $lvl <= 5; $lvl++) {
-                    $normScale[$lvl] = (string)($rawScale[$lvl] ?? ($rawScale[(string)$lvl] ?? ''));
-                }
-                return [
-                    'id' => $kpi->id, // Include ID for update
-                    'title' => (string) $kpi->title,
-                    // ensure number input shows formatted value
-                    'weight' => (string) number_format((float) $kpi->weight, 2, '.', ''),
-                    'scale' => $normScale,
-                    'deleted' => false,
-                ];
-            })->values()->all();
+            $this->items = $tlKpiItemService->buildPlanItemsFromExistingKpis($existing);
         } else {
             $this->addRow();
         }
@@ -71,19 +60,7 @@ class PlanForm extends Component
 
     public function addRow(): void
     {
-        $this->items[] = [
-            'id' => null, // No ID for new items
-            'title' => '',
-            'weight' => '',
-            'scale' => [
-                1 => 'Very Poor',
-                2 => 'Poor',
-                3 => 'Average',
-                4 => 'Good',
-                5 => 'Excellent',
-            ],
-            'deleted' => false,
-        ];
+        $this->items[] = app(TeamLeaderKpiItemService::class)->newPlanRow();
     }
 
     public function removeRow(int $index): void
@@ -102,15 +79,7 @@ class PlanForm extends Component
 
     private function recomputeTotal(): void
     {
-        $sum = 0.0;
-        foreach ($this->items as $row) {
-            // Skip deleted items
-            if (!empty($row['deleted'])) continue;
-
-            $w = (float)($row['weight'] ?? 0);
-            $sum += $w;
-        }
-        $this->totalWeight = $sum;
+        $this->totalWeight = app(TeamLeaderKpiItemService::class)->calculateTotalWeight($this->items);
     }
 
     public function submit(KpiService $service): void
@@ -169,7 +138,7 @@ class PlanForm extends Component
             }
 
             session()->flash('success', 'KPI berhasil disimpan.');
-            redirect()->route('tl.kpi.items', ['user' => $this->user->id]);
+            redirect()->route('tl.kpis.items', ['user' => $this->user->id]);
         } catch (UnauthorizedException | PeriodClosedException | DomainValidationException $e) {
             $this->addError('form', $e->getMessage());
         }

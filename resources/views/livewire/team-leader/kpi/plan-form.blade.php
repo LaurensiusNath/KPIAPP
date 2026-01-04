@@ -88,7 +88,7 @@
                 <button type="button" wire:click="addRow"
                     class="px-4 py-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-100">+ Tambah Item</button>
                 <div class="flex gap-2">
-                    <a href="{{ route('tl.kpi.items', ['user' => $user->id]) }}"
+                    <a href="{{ route('tl.kpis.items', ['user' => $user->id]) }}"
                         class="px-4 py-2 rounded border dark:border-gray-700 dark:text-gray-100">Batal</a>
                     <button type="button" wire:click="submit"
                         class="px-4 py-2 rounded bg-primary-700 text-white hover:bg-primary-800"

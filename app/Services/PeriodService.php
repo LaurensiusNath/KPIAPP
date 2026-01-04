@@ -47,9 +47,25 @@ class PeriodService
         return $period->refresh();
     }
 
+    public function findById(int $periodId): ?Period
+    {
+        return Period::query()->find($periodId);
+    }
+
+    public function setActivePeriodById(int $periodId): Period
+    {
+        $period = Period::query()->findOrFail($periodId);
+        return $this->setActivePeriod($period);
+    }
+
     public function getActivePeriod(): ?Period
     {
         return Period::query()->where('is_active', true)->first();
+    }
+
+    public function loadKpiCount(Period $period): Period
+    {
+        return $period->loadCount('kpis');
     }
 
     public function isCurrentWindowForKpiCreation(Period $period): bool

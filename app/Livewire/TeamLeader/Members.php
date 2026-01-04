@@ -2,8 +2,8 @@
 
 namespace App\Livewire\TeamLeader;
 
-use App\Models\User;
 use App\Services\KpiService;
+use App\Services\KpiValueService;
 use App\Services\PeriodService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -15,18 +15,14 @@ class Members extends Component
     public array $members = [];
     public string $search = '';
 
-    public function mount(KpiService $kpiService, PeriodService $periodService)
+    public function mount(KpiService $kpiService, KpiValueService $kpiValueService, PeriodService $periodService)
     {
         $tl = Auth::user();
         $period = $periodService->getActivePeriod();
 
-        $collection = User::query()
-            ->where('division_id', $tl->division_id)
-            ->where('role', 'user')
-            ->orderBy('name')
-            ->get();
+        $collection = $kpiValueService->getMembersForTeamLeader($tl);
 
-        $this->members = $collection->map(function (User $u) use ($kpiService, $period) {
+        $this->members = $collection->map(function ($u) use ($kpiService, $period) {
             $hasSetKpi = false;
             if ($period) {
                 $totalWeight = $kpiService->getTotalWeightForUserPeriod($u, $period);

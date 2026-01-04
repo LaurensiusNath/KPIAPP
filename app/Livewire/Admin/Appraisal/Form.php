@@ -4,12 +4,12 @@ namespace App\Livewire\Admin\Appraisal;
 
 use App\Models\User;
 use App\Models\Period;
-use App\Models\Appraisal;
 use App\Services\AppraisalService;
+use App\Services\UserService;
 use App\Services\Exceptions\DomainValidationException;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Appraisal;
 
 #[Layout('layouts.admin')]
 class Form extends Component
@@ -22,15 +22,12 @@ class Form extends Component
     public bool $readonly = false;
     public string $statusBadge = '';
 
-    public function mount(User $user, Period $period, AppraisalService $service)
+    public function mount(User $user, Period $period, AppraisalService $service, UserService $userService)
     {
-        $this->user = $user->load('division');
+        $this->user = $userService->loadDivision($user);
         $this->period = $period;
 
-        $this->appraisal = Appraisal::query()
-            ->where('user_id', $this->user->id)
-            ->where('period_id', $this->period->id)
-            ->first();
+        $this->appraisal = $service->findAppraisalForUserAndPeriod($this->user->id, $this->period->id);
 
         $this->summary = $service->getSemesterSummary($this->user->id, $this->period->id);
 
@@ -81,7 +78,7 @@ class Form extends Component
             ]);
             if ($result['success']) {
                 // Redirect ke index dengan flash agar status terlihat langsung
-                return redirect()->route('admin.appraisal.index', ['period' => $this->period->id])
+                return redirect()->route('admin.appraisals.index', ['period' => $this->period->id])
                     ->with('success', $result['message']);
             }
             // Tetap di halaman jika gagal agar bisa perbaiki input
@@ -96,6 +93,6 @@ class Form extends Component
 
     public function render()
     {
-        return view('livewire.admin.appraisal.form');
+        return view('livewire.admin.appraisals.form');
     }
 }
