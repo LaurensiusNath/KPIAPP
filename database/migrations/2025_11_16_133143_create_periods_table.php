@@ -11,15 +11,13 @@ return new class extends Migration {
         Schema::create('periods', function (Blueprint $table) {
             $table->id();
             $table->integer('year');
-            $table->smallInteger('semester'); // 1 or 2
+            $table->smallInteger('semester');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
 
             $table->unique(['year', 'semester'], 'periods_year_semester_unique');
         });
 
-        // Postgres check constraint to ensure semester is only 1 or 2
-        // Safe for PostgreSQL; if another DB is used, wrap in condition or remove.
         DB::statement("ALTER TABLE periods ADD CONSTRAINT periods_semester_check CHECK (semester IN (1, 2));");
     }
 

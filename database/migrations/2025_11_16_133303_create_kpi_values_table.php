@@ -9,33 +9,18 @@ return new class extends Migration {
     {
         Schema::create('kpi_values', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('kpi_id')
-                ->constrained('kpis')
-                ->cascadeOnDelete();
-
-            $table->foreignId('user_id') // user yang dinilai
-                ->constrained('users')
-                ->cascadeOnDelete();
-
-            $table->foreignId('evaluator_id') // team leader
-                ->constrained('users')
-                ->cascadeOnDelete();
-
-            $table->foreignId('division_id')
-                ->constrained('divisions')
-                ->cascadeOnDelete();
-
-            $table->foreignId('period_id')
-                ->constrained('periods')
-                ->cascadeOnDelete();
-
-            $table->unsignedTinyInteger('score'); // 1–5
+            $table->foreignId('kpi_id')->constrained('kpis')->restrictOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('evaluator_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('division_id')->constrained('divisions')->cascadeOnDelete();
+            $table->foreignId('period_id')->constrained('periods')->cascadeOnDelete();
+            $table->unsignedTinyInteger('month')->nullable();
+            $table->unsignedTinyInteger('score');
             $table->text('note')->nullable();
-
             $table->boolean('is_submitted')->default(false);
-
             $table->timestamps();
+
+            $table->index(['user_id', 'period_id', 'month']);
         });
     }
 

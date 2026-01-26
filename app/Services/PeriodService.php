@@ -8,7 +8,6 @@ use App\Models\Period;
 use App\Services\Exceptions\DomainValidationException;
 use Carbon\Carbon;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Support\Facades\DB;
 
 class PeriodService
 {

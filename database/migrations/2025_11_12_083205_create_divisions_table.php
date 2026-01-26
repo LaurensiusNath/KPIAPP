@@ -13,20 +13,8 @@ return new class extends Migration
     {
         Schema::create('divisions', function (Blueprint $table) {
             $table->id();
-
-            // SAME as PostgreSQL: NOT NULL + UNIQUE
             $table->string('name')->unique();
-
-            // SAME as PostgreSQL: NOT NULL + foreign key restricted
-            $table->foreignId('leader_id')
-                ->constrained(
-                    table: 'users',
-                    indexName: 'divisions_leader_id',
-                    column: 'id'
-                )
-                ->restrictOnDelete();
-
-            // SAME as PostgreSQL: timestamps nullable (Laravel default)
+            $table->foreignId('leader_id')->constrained('users', indexName: 'divisions_leader_id')->restrictOnDelete();
             $table->timestamps();
         });
     }

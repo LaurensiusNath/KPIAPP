@@ -9,14 +9,10 @@ return new class extends Migration {
     {
         Schema::create('kpis', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')
-                ->constrained('users')
-                ->cascadeOnDelete();
-            $table->foreignId('period_id')
-                ->constrained('periods')
-                ->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('period_id')->constrained('periods')->cascadeOnDelete();
             $table->string('title', 255);
-            $table->decimal('weight', 5, 2); // e.g., 25.00
+            $table->decimal('weight', 5, 2);
             $table->json('criteria_scale');
             $table->timestamps();
 
