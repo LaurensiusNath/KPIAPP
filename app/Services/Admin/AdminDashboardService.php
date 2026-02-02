@@ -78,7 +78,7 @@ class AdminDashboardService
             return [];
         }
 
-        $currentMonth = (int) Carbon::now()->month;
+        $currentMonth = (int) \App\Helpers\TimeHelper::now()->month;
 
         $divisions = Division::with('leader')
             ->withCount([
@@ -159,7 +159,7 @@ class AdminDashboardService
             return [];
         }
 
-        $currentMonth = (int) Carbon::now()->month;
+        $currentMonth = (int) \App\Helpers\TimeHelper::now()->month;
 
         $topUsers = DB::table('users')
             ->join('kpi_values', 'users.id', '=', 'kpi_values.user_id')
@@ -201,7 +201,7 @@ class AdminDashboardService
             return [];
         }
 
-        $currentMonth = (int) Carbon::now()->month;
+        $currentMonth = (int) \App\Helpers\TimeHelper::now()->month;
 
         // Get KPI averages grouped by division in one query
         $kpiStats = DB::table('kpi_values')

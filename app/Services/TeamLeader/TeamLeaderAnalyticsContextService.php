@@ -57,7 +57,7 @@ class TeamLeaderAnalyticsContextService
             return $requested;
         }
 
-        $current = (int) now()->month;
+        $current = (int) \App\Helpers\TimeHelper::now()->month;
         if (in_array($current, $months, true)) {
             return $current;
         }
@@ -82,6 +82,6 @@ class TeamLeaderAnalyticsContextService
             return $month;
         }
 
-        return (int) ($validMonths[0] ?? now()->month);
+        return (int) ($validMonths[0] ?? \App\Helpers\TimeHelper::now()->month);
     }
 }

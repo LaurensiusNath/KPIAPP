@@ -289,7 +289,7 @@ class TeamLeaderDashboardService
             'total_kpis' => $totalKpis,
             'total_evaluations' => $totalEvaluations,
             'staff_count' => $staffCount,
-            'monthly_average' => $avgScore,
+            'division_average' => $avgScore,
         ];
     }
 

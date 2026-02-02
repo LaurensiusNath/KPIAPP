@@ -23,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Note: Test time is now handled by SetTestTime middleware
+        // This ensures it works correctly in serverless environments like Vercel
+
         // Register custom auth provider for encrypted passwords
         Auth::provider('encrypted', function ($app, array $config) {
             return new EncryptedUserProvider($app['hash'], $config['model']);
