@@ -47,17 +47,17 @@ class Form extends Component
 
     protected function computeStatus(): void
     {
-        if ($this->appraisal?->is_finalized) {
+        if ($this->appraisal?->status === 'finalized') {
             $this->statusBadge = 'Finalized';
             $this->readonly = true;
             return;
         }
-        if (!$this->appraisal || !$this->appraisal->teamleader_submitted_at) {
+        if (!$this->appraisal || $this->appraisal->status === 'pending_teamleader') {
             $this->statusBadge = 'Waiting for Team Leader';
             $this->readonly = true; // HRD waits
             return;
         }
-        if ($this->appraisal->teamleader_submitted_at && !$this->appraisal->hrd_submitted_at) {
+        if ($this->appraisal->status === 'pending_hrd') {
             $this->statusBadge = 'Waiting for HRD';
             $this->readonly = false;
             return;

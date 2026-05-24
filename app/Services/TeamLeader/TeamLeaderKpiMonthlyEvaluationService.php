@@ -20,7 +20,7 @@ class TeamLeaderKpiMonthlyEvaluationService
      */
     public function load(User $member, User $actor, ?int $month = null): array
     {
-        $month = $month ?? (int) \App\Helpers\TimeHelper::now()->month;
+        $month = $month ?? (int) now()->month;
         $period = $this->periodService->getActivePeriod();
 
         // Authorization/scope

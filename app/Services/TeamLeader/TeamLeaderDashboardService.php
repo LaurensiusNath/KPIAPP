@@ -107,18 +107,17 @@ class TeamLeaderDashboardService
 
         $pendingTL = Appraisal::where('division_id', $division->id)
             ->where('period_id', $period->id)
-            ->whereNull('teamleader_submitted_at')
+            ->where('status', 'pending_teamleader')
             ->count();
 
         $pendingHRD = Appraisal::where('division_id', $division->id)
             ->where('period_id', $period->id)
-            ->whereNotNull('teamleader_submitted_at')
-            ->whereNull('hrd_submitted_at')
+            ->where('status', 'pending_hrd')
             ->count();
 
         $finalized = Appraisal::where('division_id', $division->id)
             ->where('period_id', $period->id)
-            ->where('is_finalized', true)
+            ->where('status', 'finalized')
             ->count();
 
         return [
@@ -220,13 +219,12 @@ class TeamLeaderDashboardService
 
             $appraisalStatus = 'Belum ada';
             if ($appraisal) {
-                if ($appraisal->is_finalized) {
-                    $appraisalStatus = 'Finalized';
-                } elseif ($appraisal->teamleader_submitted_at) {
-                    $appraisalStatus = 'Pending HRD';
-                } else {
-                    $appraisalStatus = 'Pending TL';
-                }
+                $appraisalStatus = match ($appraisal->status) {
+                    'finalized' => 'Finalized',
+                    'pending_hrd' => 'Pending HRD',
+                    'pending_teamleader' => 'Pending TL',
+                    default => 'Belum ada',
+                };
             }
 
             return [
@@ -290,6 +288,7 @@ class TeamLeaderDashboardService
             'total_evaluations' => $totalEvaluations,
             'staff_count' => $staffCount,
             'division_average' => $avgScore,
+            'monthly_average' => $avgScore,
         ];
     }
 

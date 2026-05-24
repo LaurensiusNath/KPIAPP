@@ -134,7 +134,7 @@
                         <div class="ml-4 flex-1">
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Rata-rata Divisi</p>
                             <p class="text-2xl font-bold text-primary-700 dark:text-primary-400">
-                                {{ $divisionStats['division_average'] !== null ? number_format($divisionStats['division_average'], 2) : '—' }}
+                                {{ ($divisionStats['division_average'] ?? null) !== null ? number_format($divisionStats['division_average'], 2) : '—' }}
                             </p>
                         </div>
                     </div>

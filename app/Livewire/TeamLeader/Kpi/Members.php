@@ -37,13 +37,12 @@ class Members extends Component
                 $appraisal = $teamLeaderAppraisalService->findAppraisal($u, $period);
 
                 if ($appraisal) {
-                    if ($appraisal->is_finalized) {
-                        $appraisalStatus = 'Finalized';
-                    } elseif ($appraisal->teamleader_submitted_at) {
-                        $appraisalStatus = 'Pending HRD';
-                    } else {
-                        $appraisalStatus = 'Pending TL';
-                    }
+                    $appraisalStatus = match ($appraisal->status) {
+                        'finalized' => 'Finalized',
+                        'pending_hrd' => 'Pending HRD',
+                        'pending_teamleader' => 'Pending TL',
+                        default => 'Belum Ada',
+                    };
                 }
             }
 

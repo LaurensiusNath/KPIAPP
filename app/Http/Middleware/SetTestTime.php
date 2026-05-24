@@ -12,26 +12,33 @@ class SetTestTime
     /**
      * Handle an incoming request.
      *
+     * Sets Carbon::setTestNow() only while the application
+     * is handling the request, then resets it before the
+     * terminable middleware stack runs (e.g. session save,
+     * queued jobs) to avoid polluting framework timestamps
+     * such as session `last_activity`.
+     *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Start session if not started (for cookie driver compatibility)
-        if (!$request->hasSession() || !$request->session()->isStarted()) {
-            $request->session()->start();
-        }
+        $hadTestTime = false;
 
-        // Check if test time is set in session
-        if ($request->session()->has('test_time_value')) {
+        if ($request->hasSession() && $request->session()->has('test_time_value')) {
             $testTime = $request->session()->get('test_time_value');
-
-            // Set Carbon test time globally for this request
             Carbon::setTestNow(Carbon::parse($testTime));
-        } else {
-            // Reset to real time if no test time in session
-            Carbon::setTestNow(null);
+            $hadTestTime = true;
         }
 
-        return $next($request);
+        try {
+            return $next($request);
+        } finally {
+            // Always restore real time after the controller finishes.
+            // The terminable phase (session write, etc.) must run on real time
+            // so framework timestamps like session last_activity stay valid.
+            if ($hadTestTime) {
+                Carbon::setTestNow(null);
+            }
+        }
     }
 }

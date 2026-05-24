@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Auth\EncryptedUserProvider;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -23,9 +24,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Note: Test time is now handled by SetTestTime middleware
-        // This ensures it works correctly in serverless environments like Vercel
-
         // Register custom auth provider for encrypted passwords
         Auth::provider('encrypted', function ($app, array $config) {
             return new EncryptedUserProvider($app['hash'], $config['model']);
@@ -47,5 +45,11 @@ class AppServiceProvider extends ServiceProvider
 
         Livewire::component('admin.periods', \App\Livewire\Admin\Periods\Index::class);
         Livewire::component('admin.period-detail', \App\Livewire\Admin\Periods\Show::class);
+
+        // if (env('APP_ENV') === 'local' || env('APP_ENV') === 'demo') {
+        //     // Set waktu palsu ke 31 Desember 2026, jam 10:00 pagi
+        //     $mockDate = Carbon::create(2026, 06, 21, 10, 0, 0);
+        //     Carbon::setTestNow($mockDate);
+        // }
     }
 }

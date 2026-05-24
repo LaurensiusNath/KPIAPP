@@ -1,5 +1,5 @@
 <div class="flex items-center gap-2">
-    <!-- Time Selector Dropdown -->
+    <!-- Time Selector Trigger -->
     <div class="relative">
         <button id="timeDropdownButton" data-dropdown-toggle="timeDropdown"
             class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
@@ -24,34 +24,52 @@
 
         <!-- Dropdown menu -->
         <div id="timeDropdown"
-            class="hidden z-50 w-72 bg-white rounded-lg shadow-lg dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+            class="hidden z-50 w-80 bg-white rounded-lg shadow-lg dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
             <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
                 <p class="text-sm font-semibold text-gray-900 dark:text-white">
                     🧪 Testing Time Control
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Override system time for testing
+                    Pilih tanggal & jam bebas, atau gunakan preset.
                 </p>
             </div>
 
-            <div class="p-3 space-y-2">
-                @foreach ($availableTimes as $key => $label)
-                    <label
-                        class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer transition-colors">
-                        <input type="radio" wire:model.live="selectedTime" value="{{ $key }}"
-                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:bg-gray-600 dark:border-gray-500">
-                        <span class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+            <!-- Custom date/time picker -->
+            <div class="p-4 space-y-3">
+                <label class="block">
+                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Tanggal & Jam</span>
+                    <input type="datetime-local" wire:model="customDateTime"
+                        class="mt-1 block w-full text-sm rounded-md border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white focus:border-blue-500 focus:ring-blue-500" />
+                    @error('customDateTime')
+                        <span class="text-xs text-red-600 mt-1 block">{{ $message }}</span>
+                    @enderror
+                </label>
+
+                <div class="flex gap-2">
+                    <button type="button" wire:click="apply"
+                        class="flex-1 px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+                        ✅ Terapkan
+                    </button>
+                    <button type="button" wire:click="resetToRealTime"
+                        class="px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors">
+                        🔄 Real Time
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick presets -->
+            <div class="px-4 pb-3">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                    Preset cepat
+                </p>
+                <div class="space-y-1">
+                    @foreach ($quickPresets as $value => $label)
+                        <button type="button" wire:click="applyPreset('{{ $value }}')"
+                            class="w-full text-left px-2 py-1.5 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors">
                             {{ $label }}
-                        </span>
-                        @if ($selectedTime === $key && $key !== 'real')
-                            <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                        @endif
-                    </label>
-                @endforeach
+                        </button>
+                    @endforeach
+                </div>
             </div>
 
             @if ($currentTestTime)
@@ -67,9 +85,6 @@
                         <span class="text-orange-800 dark:text-orange-200 font-medium">
                             Test: {{ $currentTestTime }}
                         </span>
-                    </div>
-                    <div class="mt-1 text-xs text-orange-600 dark:text-orange-300">
-                        Now: {{ \App\Helpers\TimeHelper::now()->format('d M Y H:i') }}
                     </div>
                     <button onclick="window.location.reload()"
                         class="mt-2 w-full px-3 py-1.5 text-xs font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-md transition-colors">

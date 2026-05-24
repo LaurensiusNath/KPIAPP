@@ -193,7 +193,7 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Status Finalisasi</p>
                                 <p class="text-sm text-gray-900 mt-1">
-                                    @if ($detail['appraisal']->is_finalized)
+                                    @if ($detail['appraisal']->status === 'finalized')
                                         <span
                                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                             Finalized

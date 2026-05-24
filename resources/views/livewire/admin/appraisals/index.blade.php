@@ -40,15 +40,22 @@
                     @php($app = $appraisals[$u->id] ?? null)
                     @php($status = 'Belum dinilai')
                     @if ($app)
-                        @if (!$app->teamleader_submitted_at)
-                            @php($status = 'Menunggu TL')
-                        @elseif(!$app->hrd_submitted_at)
-                            @php($status = 'Menunggu HRD')
-                        @elseif($app->teamleader_submitted_at && $app->hrd_submitted_at && !$app->is_finalized)
-                            @php($status = 'HRD Submitted')
-                        @elseif($app->is_finalized)
-                            @php($status = 'Finalized')
-                        @endif
+                        @switch($app->status)
+                            @case('pending_teamleader')
+                                @php($status = 'Menunggu TL')
+                            @break
+
+                            @case('pending_hrd')
+                                @php($status = 'Menunggu HRD')
+                            @break
+
+                            @case('finalized')
+                                @php($status = 'Finalized')
+                            @break
+
+                            @default
+                                @php($status = 'Belum dinilai')
+                        @endswitch
                     @endif
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td class="px-4 py-2 font-medium text-gray-900 dark:text-gray-100">{{ $u->name }}</td>
@@ -62,7 +69,7 @@
                                     'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200' =>
                                         $status === 'Menunggu TL',
                                     'bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-200' =>
-                                        $status === 'Menunggu HRD' || $status === 'HRD Submitted',
+                                        $status === 'Menunggu HRD',
                                     'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200' =>
                                         $status === 'Finalized',
                                 ])">{{ $status }}</span>
@@ -82,16 +89,16 @@
                             @endif
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Tidak ada
-                            user.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-        <div class="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-            {{ $users->links() }}
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Tidak ada
+                                user.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div class="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                {{ $users->links() }}
+            </div>
         </div>
     </div>
-</div>

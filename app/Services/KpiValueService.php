@@ -17,7 +17,7 @@ class KpiValueService
     // --------------- Validation helpers ---------------
     public function isEvaluationWindow(?Carbon $now = null): bool
     {
-        $now = $now ?: \App\Helpers\TimeHelper::now();
+        $now = $now ?: now();
         $day = (int)$now->day;
         return $day >= 21 && $day <= 25;
     }
@@ -45,7 +45,7 @@ class KpiValueService
 
     public function ensurePeriodMatchesCurrentDate(Period $period, ?Carbon $now = null): void
     {
-        $now = $now ?: \App\Helpers\TimeHelper::now();
+        $now = $now ?: now();
         if ((int)$period->year !== (int)$now->year) {
             throw new DomainValidationException('Tahun periode aktif tidak sesuai tahun berjalan.');
         }
@@ -138,7 +138,7 @@ class KpiValueService
             ];
         }
 
-        $month = (int) \App\Helpers\TimeHelper::now()->month;
+        $month = (int) now()->month;
         if (!$this->isEvaluationWindow()) {
             return [
                 'success' => false,

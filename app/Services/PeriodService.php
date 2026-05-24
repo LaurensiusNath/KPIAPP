@@ -69,7 +69,7 @@ class PeriodService
 
     public function isCurrentWindowForKpiCreation(Period $period): bool
     {
-        $now = \App\Helpers\TimeHelper::now();
+        $now = Carbon::now();
 
         if ($period->semester === 1) {
             return (int)$now->month === 1 && (int)$now->day <= 10;
@@ -84,7 +84,7 @@ class PeriodService
 
     public function isCurrentWindowForAppraisal(Period $period): bool
     {
-        $now = \App\Helpers\TimeHelper::now();
+        $now = Carbon::now();
 
         if ((int)$period->year !== (int)$now->year) {
             return false;

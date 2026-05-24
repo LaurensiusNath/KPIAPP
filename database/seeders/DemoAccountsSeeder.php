@@ -20,11 +20,12 @@ class DemoAccountsSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            // 1. Pastikan periode 2025 semester 2 ada dan aktif
+            // 1. Set periode 2026 semester 1 sebagai periode aktif
+            Period::query()->update(['is_active' => false]);
             $period = Period::firstOrCreate(
                 [
-                    'year' => 2025,
-                    'semester' => 2,
+                    'year' => 2026,
+                    'semester' => 1,
                 ],
                 [
                     'is_active' => true,
@@ -32,7 +33,7 @@ class DemoAccountsSeeder extends Seeder
             );
 
             // 2. Admin demo utama (tetap ada untuk login)
-            $admin = User::updateOrCreate(
+            User::updateOrCreate(
                 ['email' => 'admin@demo.test'],
                 [
                     'name' => 'Admin Demo',
@@ -43,24 +44,21 @@ class DemoAccountsSeeder extends Seeder
                 ]
             );
 
-            // 3. Enam akun baru yang belum terhubung dengan divisi manapun
-            $unassignedUsers = collect();
+            // 3. Enam akun baru yang belum terhubung dengan divisi manapun untuk demo pembuatan divisi
             for ($i = 1; $i <= 6; $i++) {
-                $unassignedUsers->push(
-                    User::updateOrCreate(
-                        ['email' => "unassigned{$i}@demo.test"],
-                        [
-                            'name' => "Akun Demo {$i}",
-                            'password' => Crypt::encryptString('password'),
-                            'role' => 'user',
-                            'division_id' => null,
-                            'email_verified_at' => now(),
-                        ]
-                    )
+                User::updateOrCreate(
+                    ['email' => "unassigned{$i}@demo.test"],
+                    [
+                        'name' => "Akun Demo {$i}",
+                        'password' => Crypt::encryptString('password'),
+                        'role' => 'user',
+                        'division_id' => null,
+                        'email_verified_at' => now(),
+                    ]
                 );
             }
 
-            // 4. Satu divisi demo dengan 1 team leader dan 5 staff
+            // 4. Satu divisi demo dengan 1 team leader dan 5 staff yang proses KPI bulanannya sudah selesai
             $teamLeader = User::updateOrCreate(
                 ['email' => 'leader-demo@kpiapp.test'],
                 [
@@ -73,7 +71,7 @@ class DemoAccountsSeeder extends Seeder
             );
 
             $division = Division::updateOrCreate(
-                ['name' => 'Divisi Demo KPI'],
+                ['name' => 'Divisi Demo'],
                 [
                     'leader_id' => $teamLeader->id,
                 ]
@@ -100,30 +98,30 @@ class DemoAccountsSeeder extends Seeder
 
             // 5. KPI item untuk setiap staff (5 KPI per staff, bobot total 100)
             $kpiTemplates = [
-                ['title' => 'Kualitas Pekerjaan', 'weight' => 25],
-                ['title' => 'Produktivitas', 'weight' => 25],
-                ['title' => 'Kolaborasi Tim', 'weight' => 20],
-                ['title' => 'Inisiatif & Inovasi', 'weight' => 15],
-                ['title' => 'Ketepatan Waktu', 'weight' => 15],
+                ['title' => 'Kualitas & Ketelitian Kerja', 'weight' => 25],
+                ['title' => 'Pencapaian Target & Produktivitas', 'weight' => 25],
+                ['title' => 'Kerjasama Tim & Komunikasi', 'weight' => 20],
+                ['title' => 'Inisiatif & Penyelesaian Masalah', 'weight' => 15],
+                ['title' => 'Disiplin & Manajemen Waktu', 'weight' => 15],
             ];
 
             $criteriaScale = [
-                1 => 'Sangat Kurang',
-                2 => 'Kurang',
-                3 => 'Cukup',
-                4 => 'Baik',
-                5 => 'Sangat Baik',
+                1 => 'Jauh di Bawah Harapan',
+                2 => 'Di Bawah Harapan',
+                3 => 'Sesuai Harapan',
+                4 => 'Melebihi Harapan',
+                5 => 'Jauh Melebihi Harapan',
             ];
 
             $notes = [
-                'Pekerjaan diselesaikan dengan baik dan tepat waktu',
-                'Menunjukkan peningkatan yang signifikan',
-                'Perlu sedikit perbaikan dalam hal komunikasi',
-                'Sangat proaktif dalam menyelesaikan masalah',
-                'Target tercapai sesuai ekspektasi',
-                'Kolaborasi dengan tim berjalan sangat baik',
-                'Menunjukkan inisiatif yang bagus',
-                'Konsisten dalam memberikan hasil berkualitas',
+                'Hasil kerja konsisten dan sesuai standar.',
+                'Menunjukkan peningkatan produktivitas bulan ini.',
+                'Perlu meningkatkan komunikasi dengan rekan tim.',
+                'Sangat proaktif dalam mencari solusi.',
+                'Semua target bulanan berhasil dicapai.',
+                'Kolaborasi yang sangat baik dalam proyek tim.',
+                'Memberikan ide-ide inovatif yang bermanfaat.',
+                'Selalu menyelesaikan tugas tepat waktu.',
             ];
 
             $staffMembers->each(function (User $staff) use ($period, $division, $teamLeader, $kpiTemplates, $criteriaScale, $notes) {
@@ -136,8 +134,8 @@ class DemoAccountsSeeder extends Seeder
                         'criteria_scale' => $criteriaScale,
                     ]);
 
-                    // KPI Values untuk bulan 7-11 (semester 2)
-                    for ($month = 7; $month <= 11; $month++) {
+                    // Buat KpiValue untuk bulan 1-5 (Januari - Mei 2026)
+                    for ($month = 1; $month <= 5; $month++) {
                         KpiValue::create([
                             'kpi_id' => $kpi->id,
                             'user_id' => $staff->id,
@@ -153,23 +151,19 @@ class DemoAccountsSeeder extends Seeder
                 }
             });
 
-            // 6. Appraisal untuk setiap staff pada periode ini
+            // 6. Buat Appraisal untuk setiap staff dengan status 'pending_teamleader'
             $staffMembers->each(function (User $staff) use ($period, $division, $teamLeader) {
-                $avgScore = KpiValue::where('user_id', $staff->id)
-                    ->where('period_id', $period->id)
-                    ->avg('score');
-
                 Appraisal::create([
                     'user_id' => $staff->id,
-                    'evaluator_id' => $teamLeader->id,
+                    'team_leader_id' => $teamLeader->id,
                     'division_id' => $division->id,
                     'period_id' => $period->id,
-                    'final_score' => round($avgScore, 2),
-                    'comment_teamleader' => 'Kinerja baik secara keseluruhan, sesuai dengan target divisi demo.',
-                    'comment_hrd' => 'Data appraisal demo untuk keperluan presentasi dan testing.',
-                    'is_finalized' => true,
-                    'teamleader_submitted_at' => now()->subDays(5),
-                    'hrd_submitted_at' => now()->subDays(3),
+                    'final_score' => null,
+                    'comment_teamleader' => null,
+                    'comment_hrd' => null,
+                    'status' => 'pending_teamleader',
+                    'teamleader_submitted_at' => null,
+                    'hrd_submitted_at' => null,
                 ]);
             });
         });
