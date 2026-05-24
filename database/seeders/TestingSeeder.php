@@ -148,18 +148,24 @@ class TestingSeeder extends Seeder
 
                 // Vary appraisal status for testing different scenarios
                 $status = $index % 4;
+                $statusValue = match ($status) {
+                    0 => 'pending_teamleader',
+                    1 => 'pending_hrd',
+                    2 => 'finalized',
+                    3 => 'finalized',
+                };
 
                 $appraisal = Appraisal::create([
                     'user_id' => $staff->id,
-                    'evaluator_id' => $teamLeader->id,
+                    'team_leader_id' => $teamLeader->id,
                     'division_id' => $staff->division_id,
                     'period_id' => $period->id,
                     'final_score' => round($avgScore, 2),
                     'comment_teamleader' => $status >= 1 ? 'Kinerja yang baik secara keseluruhan. Terus pertahankan dan tingkatkan.' : null,
-                    'comment_hrd' => $status >= 3 ? 'Direkomendasikan untuk program pengembangan karir.' : null,
-                    'is_finalized' => $status === 3,
+                    'comment_hrd' => $status >= 2 ? 'Direkomendasikan untuk program pengembangan karir.' : null,
+                    'status' => $statusValue,
                     'teamleader_submitted_at' => $status >= 1 ? now()->subDays(rand(1, 10)) : null,
-                    'hrd_submitted_at' => $status >= 3 ? now()->subDays(rand(1, 5)) : null,
+                    'hrd_submitted_at' => $status >= 2 ? now()->subDays(rand(1, 5)) : null,
                 ]);
             });
 

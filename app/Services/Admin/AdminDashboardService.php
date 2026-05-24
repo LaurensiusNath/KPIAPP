@@ -133,9 +133,9 @@ class AdminDashboardService
         $stats = DB::table('appraisals')
             ->select(
                 DB::raw('COUNT(*) as total'),
-                DB::raw('SUM(CASE WHEN teamleader_submitted_at IS NULL THEN 1 ELSE 0 END) as pending_teamleader'),
-                DB::raw('SUM(CASE WHEN teamleader_submitted_at IS NOT NULL AND hrd_submitted_at IS NULL THEN 1 ELSE 0 END) as pending_hrd'),
-                DB::raw('SUM(CASE WHEN is_finalized = true THEN 1 ELSE 0 END) as finalized')
+                DB::raw("SUM(CASE WHEN status = 'pending_teamleader' THEN 1 ELSE 0 END) as pending_teamleader"),
+                DB::raw("SUM(CASE WHEN status = 'pending_hrd' THEN 1 ELSE 0 END) as pending_hrd"),
+                DB::raw("SUM(CASE WHEN status = 'finalized' THEN 1 ELSE 0 END) as finalized")
             )
             ->where('period_id', $activePeriod->id)
             ->first();
@@ -222,8 +222,8 @@ class AdminDashboardService
         $divisions = Division::with('leader')
             ->withCount([
                 'users as staff_count' => fn($q) => $q->where('role', 'user'),
-                'appraisals as appraisal_finalized' => fn($q) => $q->where('period_id', $activePeriod->id)->where('is_finalized', true),
-                'appraisals as appraisal_pending' => fn($q) => $q->where('period_id', $activePeriod->id)->where('is_finalized', false)
+                'appraisals as appraisal_finalized' => fn($q) => $q->where('period_id', $activePeriod->id)->where('status', 'finalized'),
+                'appraisals as appraisal_pending' => fn($q) => $q->where('period_id', $activePeriod->id)->where('status', '!=', 'finalized')
             ])
             ->orderBy('name')
             ->get();

@@ -59,6 +59,26 @@ class User extends Authenticatable
         return $this->hasOne(Division::class, 'leader_id', 'id');
     }
 
+    public function appraisals(): HasMany
+    {
+        return $this->hasMany(Appraisal::class, 'user_id', 'id');
+    }
+
+    public function appraisalsAsTeamLeader(): HasMany
+    {
+        return $this->hasMany(Appraisal::class, 'team_leader_id', 'id');
+    }
+
+    public function monthlyEvaluator(): HasMany
+    {
+        return $this->hasMany(KpiValue::class, 'evaluator_id', 'id');
+    }
+
+    public function monthlyKpiValues(): HasMany
+    {
+        return $this->hasMany(KpiValue::class, 'user_id', 'id');
+    }
+
     public function kpiValues(): HasMany
     {
         return $this->hasMany(KpiValue::class, 'user_id', 'id');

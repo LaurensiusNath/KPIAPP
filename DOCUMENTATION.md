@@ -65,9 +65,9 @@
 #### **6. appraisals**
 
 - Tabel untuk appraisal semester final
-- Kolom: id, user_id, evaluator_id, division_id, period_id, final_score, comment_teamleader, comment_hrd, is_finalized, teamleader_submitted_at, hrd_submitted_at, timestamps
+- Kolom: id, user_id, team_leader_id, division_id, period_id, final_score, comment_teamleader, comment_hrd, status, teamleader_submitted_at, hrd_submitted_at, timestamps
 - Constraint: unique(user_id, period_id)
-- Relasi: belongsTo User, belongsTo Evaluator, belongsTo Division, belongsTo Period
+- Relasi: belongsTo User, belongsTo Team Leader, belongsTo Division, belongsTo Period
 
 ---
 
@@ -202,29 +202,30 @@
 **Fillable:**
 
 ```php
-['user_id', 'evaluator_id', 'division_id', 'period_id',
+['user_id', 'team_leader_id', 'division_id', 'period_id',
  'final_score', 'comment_teamleader', 'comment_hrd',
- 'is_finalized', 'teamleader_submitted_at', 'hrd_submitted_at']
+ 'status', 'teamleader_submitted_at', 'hrd_submitted_at']
 ```
 
 **Relationships:**
 
 - `user()` - BelongsTo User
-- `evaluator()` - BelongsTo User
+- `leader()` - BelongsTo User (team_leader_id)
 - `division()` - BelongsTo Division
 - `period()` - BelongsTo Period
 
 **Casts:**
 
 - `final_score` => decimal:2
-- `is_finalized` => boolean
+- `status` => string
 - `teamleader_submitted_at` => datetime
 - `hrd_submitted_at` => datetime
 
 **Business Rules:**
 
 - Unique per (user_id, period_id)
-- Finalized ketika TL dan HRD sudah submit
+- Status: `pending_teamleader`, `pending_hrd`, `finalized`
+- `finalized` ketika TL dan HRD sudah submit
 
 ---
 
@@ -850,7 +851,7 @@ Database Transaction → KpiValue records
        ↓
    Database → hrd_submitted_at
        ↓ (auto)
-   finalizeIfCompleted() → is_finalized = true
+    finalizeIfCompleted() → status = finalized
 ```
 
 ### **Flow 4: Division Management (Admin)**

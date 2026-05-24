@@ -179,7 +179,7 @@
             <td>
                 <span class="summary-label">Rata-rata Divisi</span>
                 <span
-                    class="summary-value">{{ $divisionStats['division_average'] !== null ? number_format($divisionStats['division_average'], 2) : '—' }}</span>
+                    class="summary-value">{{ ($divisionStats['division_average'] ?? null) !== null ? number_format($divisionStats['division_average'], 2) : '—' }}</span>
             </td>
         </tr>
     </table>

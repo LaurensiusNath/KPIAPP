@@ -25,9 +25,13 @@ class Period extends Model
         return $this->hasMany(Kpi::class, 'period_id', 'id');
     }
 
-    // If kpi_values table has period_id, we can relate directly
     public function kpiValues(): HasMany
     {
         return $this->hasMany(KpiValue::class, 'period_id', 'id');
+    }
+
+    public function appraisals(): HasMany
+    {
+        return $this->hasMany(Appraisal::class, 'period_id', 'id');
     }
 }

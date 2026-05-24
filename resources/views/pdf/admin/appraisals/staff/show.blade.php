@@ -379,7 +379,8 @@
             </div>
             <div class="meta-row">
                 <span class="meta-label">Status</span>
-                <span class="meta-value">{{ $detail['appraisal']->is_finalized ? 'Finalized' : 'In Progress' }}</span>
+                <span
+                    class="meta-value">{{ $detail['appraisal']->status === 'finalized' ? 'Finalized' : 'In Progress' }}</span>
             </div>
         </div>
     @endif

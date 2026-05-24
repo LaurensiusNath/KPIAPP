@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Auth\EncryptedUserProvider;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -44,5 +45,11 @@ class AppServiceProvider extends ServiceProvider
 
         Livewire::component('admin.periods', \App\Livewire\Admin\Periods\Index::class);
         Livewire::component('admin.period-detail', \App\Livewire\Admin\Periods\Show::class);
+
+        // if (env('APP_ENV') === 'local' || env('APP_ENV') === 'demo') {
+        //     // Set waktu palsu ke 31 Desember 2026, jam 10:00 pagi
+        //     $mockDate = Carbon::create(2026, 06, 21, 10, 0, 0);
+        //     Carbon::setTestNow($mockDate);
+        // }
     }
 }

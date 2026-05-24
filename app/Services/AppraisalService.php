@@ -162,7 +162,12 @@ class AppraisalService
                 'name' => $user->name,
                 'email' => $user->email,
                 'average_score' => $avg,
-                'appraisal_status' => $appraisal?->is_finalized ? 'Finalized' : ($appraisal ? 'In Progress' : 'Not Started'),
+                'appraisal_status' => match ($appraisal?->status) {
+                    'finalized' => 'Finalized',
+                    'pending_hrd' => 'Pending HRD',
+                    'pending_teamleader' => 'Pending TL',
+                    default => $appraisal ? 'In Progress' : 'Not Started',
+                },
                 'teamleader_submitted' => $appraisal?->teamleader_submitted_at !== null,
                 'hrd_submitted' => $appraisal?->hrd_submitted_at !== null,
             ];
@@ -350,7 +355,7 @@ class AppraisalService
             'period_id' => $period->id,
         ], [
             'division_id' => $user->division_id,
-            'evaluator_id' => $tl->id,
+            'team_leader_id' => $tl->id,
         ]);
 
         if ($appraisal->teamleader_submitted_at) {
@@ -365,11 +370,12 @@ class AppraisalService
 
         $appraisal->comment_teamleader = $comment;
         $appraisal->teamleader_submitted_at = now();
+        $appraisal->status = 'pending_hrd';
         $appraisal->save();
 
         $this->finalizeIfCompleted($appraisal);
 
-        return ['success' => true, 'message' => $appraisal->is_finalized ? 'Appraisal finalized.' : 'Appraisal TL berhasil disimpan.'];
+        return ['success' => true, 'message' => $appraisal->status === 'finalized' ? 'Appraisal finalized.' : 'Appraisal TL berhasil disimpan.'];
     }
 
     public function saveHrdAppraisal(int $userId, int $periodId, array $data): array
@@ -394,7 +400,7 @@ class AppraisalService
             'period_id' => $period->id,
         ], [
             'division_id' => $user->division_id,
-            'evaluator_id' => $admin->id,
+            'team_leader_id' => $user->division?->leader_id,
         ]);
 
         if (!$appraisal->teamleader_submitted_at) {
@@ -412,17 +418,18 @@ class AppraisalService
 
         $appraisal->comment_hrd = $comment;
         $appraisal->hrd_submitted_at = now();
+        $appraisal->status = 'finalized';
         $appraisal->save();
 
         $this->finalizeIfCompleted($appraisal);
 
-        return ['success' => true, 'message' => $appraisal->is_finalized ? 'Appraisal finalized.' : 'Appraisal HRD berhasil disimpan.'];
+        return ['success' => true, 'message' => $appraisal->status === 'finalized' ? 'Appraisal finalized.' : 'Appraisal HRD berhasil disimpan.'];
     }
 
     public function finalizeIfCompleted(Appraisal $appraisal): void
     {
-        if ($appraisal->teamleader_submitted_at && $appraisal->hrd_submitted_at && !$appraisal->is_finalized) {
-            $appraisal->is_finalized = true;
+        if ($appraisal->teamleader_submitted_at && $appraisal->hrd_submitted_at && $appraisal->status !== 'finalized') {
+            $appraisal->status = 'finalized';
             $appraisal->save();
         }
     }
