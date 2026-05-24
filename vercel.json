@@ -19,25 +19,5 @@
             "dest": "/api/index.php"
         }
     ],
-    "env": {
-        "APP_ENV": "production",
-        "APP_DEBUG": "true",
-        "APP_URL": "https://kpi-app-six.vercel.app/",
-        "APP_CONFIG_CACHE": "/tmp/config.php",
-        "APP_EVENTS_CACHE": "/tmp/events.php",
-        "APP_PACKAGES_CACHE": "/tmp/packages.php",
-        "APP_ROUTES_CACHE": "/tmp/routes.php",
-        "APP_SERVICES_CACHE": "/tmp/services.php",
-        "VIEW_COMPILED_PATH": "/tmp",
-        "CACHE_DRIVER": "array",
-        "LOG_CHANNEL": "stderr",
-        "SESSION_DRIVER": "cookie",
-        "DB_CONNECTION": "mysql",
-        "DB_HOST": "5cc9bl.h.filess.io",
-        "DB_PORT": "3306",
-        "DB_DATABASE": "kpi2026_pluralgold",
-        "DB_USERNAME": "kpi2026_pluralgold",
-        "DB_PASSWORD": "68d0aa2dc05d58643440531dfd3ac0b234f380f7"
-    },
     "outputDirectory": "public"
 }
